@@ -1,0 +1,115 @@
+1. Core Components
+database.py - Database Configuration
+
+Sets up SQLAlchemy with async support
+Configures database connection and session management
+Includes get_db dependency for FastAPI route dependencies
+Handles database connection pooling and cleanup
+security.py - Authentication & Authorization
+
+Implements JWT token handling
+Password hashing and verification
+OAuth2 with Bearer token authentication
+get_current_user dependency for protected routes
+2. Data Models (models/)
+user.py
+
+Defines the User model with fields like email, hashed_password, is_active, etc.
+Includes relationships to other models (tasks, payments, GPUs)
+Handles user authentication state and permissions
+task.py
+
+Defines the Task model with status, type, and relationships
+Tracks task execution details and results
+Includes timestamps and ownership information
+gpu.py
+
+Defines the GPU model with specifications (VRAM, model, etc.)
+Tracks GPU status and availability
+Includes pricing information and owner relationship
+payment.py
+
+Defines the Payment model for financial transactions
+Tracks payment status, amounts, and relationships
+Includes transaction hashes for blockchain integration
+3. API Routes (routers/)
+users.py
+
+User registration and profile management
+Authentication endpoints (login, token refresh)
+User CRUD operations
+tasks.py
+
+Task creation, listing, and management
+Task execution and status updates
+Filtering and pagination support
+gpus.py
+
+GPU registration and management
+Availability and status updates
+Search and filtering capabilities
+payments.py
+
+Payment processing and history
+Transaction verification
+Payout management
+4. Data Schemas (schemas/)
+Define Pydantic models for request/response validation
+Separate schemas for different operations (Create, Update, Response)
+Handle data serialization/deserialization
+Input validation and type hints
+5. Services (services/)
+Business logic layer that:
+
+Handles complex operations
+Manages transactions
+Implements domain-specific rules
+Serves as an abstraction between routes and database operations
+6. Main Application (main.py)
+Creates and configures the FastAPI application
+Sets up CORS middleware
+Includes all API routers
+Configures exception handlers
+Sets up startup/shutdown events
+Key Features and Logic Flow:
+Authentication Flow:
+Users authenticate via /token endpoint
+JWT tokens are issued and validated on subsequent requests
+Protected routes use the get_current_user dependency
+Task Processing:
+Users can submit tasks to be processed on GPUs
+Tasks are queued and assigned to available GPUs
+Status updates are tracked and reported back to users
+GPU Management:
+GPU owners can register their hardware
+System matches tasks with available GPUs
+Usage tracking and billing
+Payment System:
+Handles payments for GPU usage
+Tracks transactions and payouts
+Integrates with payment providers
+API Design:
+RESTful endpoints with consistent response formats
+Proper HTTP status codes
+Error handling and validation
+Pagination and filtering support
+Technical Stack:
+Framework: FastAPI (async Python web framework)
+Database: SQLAlchemy (ORM) with async support
+Authentication: JWT (JSON Web Tokens)
+API Documentation: Automatic OpenAPI/Swagger docs
+Async Support: Fully async/await architecture
+Data Flow:
+Client makes HTTP request to API endpoint
+Request is authenticated/authorized
+Route handler processes the request
+Business logic is executed in services
+Database operations are performed
+Response is formatted and returned
+Security Features:
+Password hashing with bcrypt
+JWT token authentication
+CORS protection
+Input validation
+Protected routes
+Secure password reset flow
