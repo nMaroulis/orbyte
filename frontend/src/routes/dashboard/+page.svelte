@@ -2,58 +2,19 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { user } from '$lib/stores/auth';
-  import { onDestroy } from 'svelte';
-  import { invalidateAll } from '$app/navigation';
-  import { AuthService } from '$lib/services/auth.service';
-  
-  // State for user menu dropdown
-  let showUserMenu = false;
-  
-  // Close menu when clicking outside
-  function handleClickOutside(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.relative')) {
-      showUserMenu = false;
-    }
-  }
-  
-  // Add click outside listener
-  onMount(() => {
-    document.addEventListener('click', handleClickOutside);
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  });
-  
-  // Handle logout
-  async function handleLogout() {
-    try {
-      // Close the user menu
-      showUserMenu = false;
-      
-      // Clear user data from the store
-      user.set(null);
-      
-      // Clear any stored authentication data
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('user');
-        sessionStorage.removeItem('user');
-      }
-      
-      // Invalidate all data
-      await invalidateAll();
-      
-      // Redirect to the auth login page
-      await goto('/auth/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
-      // Still redirect to login even if there was an error
-      await goto('/auth/login');
-    }
-  }
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { API_ENDPOINTS } from '$lib/api/config';
+  
+  // Navigation functions
+  function navigateTo(path: string) {
+    goto(path);
+  }
+  
+  // Handle card clicks
+  function handleCardClick(path: string) {
+    navigateTo(path);
+  }
   import { api } from '$lib/api/client';
   import type { GPU, Task, Payment } from '$lib/types';
   
@@ -189,102 +150,6 @@
 </script>
 
 <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-  <!-- Top Navigation -->
-  <header class="bg-white shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16 items-center">
-        <div class="flex items-center">
-          <span class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Orbyte</span>
-        </div>
-        <div class="flex items-center space-x-4">
-          <button class="p-2 rounded-full hover:bg-gray-100" aria-label="Notifications">
-            <svg class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-          </button>
-          <div class="relative">
-            <button 
-              class="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-full p-1" 
-              aria-label="User menu" 
-              aria-haspopup="true"
-              aria-expanded={showUserMenu}
-              on:click={() => showUserMenu = !showUserMenu}
-              on:keydown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  showUserMenu = !showUserMenu;
-                } else if (e.key === 'Escape') {
-                  showUserMenu = false;
-                }
-              }}
-            >
-              <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-medium">
-                {$user?.email?.charAt(0).toUpperCase() || 'U'}
-              </div>
-              <span class="hidden md:inline-block text-sm font-medium text-gray-700">{$user?.email || 'User'}</span>
-              <svg 
-                class={`h-5 w-5 text-gray-400 transition-transform duration-200 ${showUserMenu ? 'transform rotate-180' : ''}`} 
-                fill="currentColor" 
-                viewBox="0 0 20 20"
-                aria-hidden="true"
-              >
-                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-              </svg>
-            </button>
-            
-            {#if showUserMenu}
-              <div 
-                class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10" 
-                role="menu" 
-                aria-orientation="vertical"
-                tabindex="0"
-                on:click|stopPropagation
-                on:keydown={(e) => {
-                  if (e.key === 'Escape') {
-                    e.preventDefault();
-                    showUserMenu = false;
-                    // Focus the menu button when closing with Escape
-                    const menuButton = e.currentTarget.previousElementSibling as HTMLElement | null;
-                    if (menuButton) menuButton.focus();
-                  }
-                }}
-              >
-                <div class="py-1">
-                  <div class="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
-                    <p class="font-medium">{$user?.email || 'User'}</p>
-                    <p class="text-xs text-gray-500">Free Plan</p>
-                  </div>
-                  <a 
-                    href="/account" 
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    role="menuitem"
-                  >
-                    Account Settings
-                  </a>
-                  <a 
-                    href="/billing" 
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    role="menuitem"
-                  >
-                    Billing
-                  </a>
-                  <div class="border-t border-gray-100 my-1"></div>
-                  <button
-                    on:click={handleLogout}
-                    class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                    role="menuitem"
-                  >
-                    Sign out
-                  </button>
-                </div>
-              </div>
-            {/if}
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
-
   <main class="py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center mb-8">
@@ -294,7 +159,7 @@
         </div>
         <div class="flex space-x-4">
           <Button 
-            on:click={() => goto('api/tasks/new')} 
+            onclick={() => navigateTo('/tasks/new')} 
             variant="outline" 
             size="lg"
             class="group hidden sm:inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
@@ -305,7 +170,7 @@
             New Task
           </Button>
           <Button 
-            on:click={() => goto('/gpus/new')} 
+            onclick={() => navigateTo('/gpus/new')} 
             variant="primary" 
             size="lg"
             class="group inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"

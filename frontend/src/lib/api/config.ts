@@ -24,6 +24,15 @@ export const API_ENDPOINTS = {
     DETAIL: (id: string | number) => `/payments/${id}`,
     CREATE: (taskId: string | number) => `/tasks/${taskId}/payments`,
   },
+  CHAT: {
+    SEND: '/chat/send',
+    CONVERSATIONS: '/chat/conversations',
+    MESSAGES: (conversationId: string) => `/chat/conversations/${conversationId}/messages`,
+  },
+  MODELS: {
+    LIST: '/models',
+    DETAIL: (id: string) => `/models/${id}`,
+  },
 };
 
 export const DEFAULT_HEADERS = {
