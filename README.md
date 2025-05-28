@@ -16,27 +16,32 @@ Orbyte is a platform that allows users to rent out their idle GPUs for running G
 - **Backend**: Python with FastAPI
 - **Database**: SQLite (with SQLAlchemy ORM)
 - **Authentication**: JWT (JSON Web Tokens)
-- **Frontend**: (To be implemented) React + TailwindCSS
+- **Frontend**: Typescript + Svelte + TailwindCSS
 - **Containerization**: Docker (To be implemented)
 
 ## Getting Started
 
 ### Prerequisites
 
-- Python 3.8+
+#### Backend
+- Python 3.11
 - pip (Python package manager)
+
+#### Frontend
+- Node.js 18+ (includes npm)
+- pnpm (recommended) or npm
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/orbyte.git
+   git clone https://github.com/nMaroulis/orbyte.git
    cd orbyte
    ```
 
 2. **Set up a virtual environment (recommended)**
    ```bash
-   python -m venv venv
+   python3.11 -m venv venv
    source venv/bin/activate  # On Windows use: venv\Scripts\activate
    ```
 
@@ -54,22 +59,69 @@ Orbyte is a platform that allows users to rent out their idle GPUs for running G
    ACCESS_TOKEN_EXPIRE_MINUTES=10080  # 7 days
    ```
 
-5. **Initialize the database**
-   ```bash
-   python -m init_db
-   ```
-
 ### Running the Application
+
+#### Backend
 
 1. **Start the backend server**
    ```bash
-   cd backend
-   uvicorn main:app --reload
+   # From the project root
+   ./run.sh
    ```
 
 2. **Access the API documentation**
    - Open your browser and go to: http://localhost:8000/api/docs
    - This will show the interactive Swagger/OpenAPI documentation
+
+#### Frontend
+
+1. **Install frontend dependencies**
+   ```bash
+   # From the project root
+   cd frontend
+   pnpm install  # or npm install if not using pnpm
+   ```
+
+2. **Set up environment variables**
+   Create a `.env` file in the `frontend` directory with:
+   ```
+   VITE_API_BASE_URL=http://localhost:8000/api
+   ```
+
+3. **Start the development server**
+   ```bash
+   pnpm dev  # or npm run dev
+   ```
+   - The frontend will be available at: http://localhost:5173
+   - The page will reload when you make changes
+
+4. **Build for production**
+   ```bash
+   pnpm build  # or npm run build
+   pnpm preview  # to preview the production build
+   ```
+
+### Development
+
+#### Frontend Tech Stack
+
+- **Framework**: Svelte 4
+- **Language**: TypeScript 5
+- **Styling**: TailwindCSS 3
+- **State Management**: Svelte stores
+- **HTTP Client**: Built-in fetch API with custom wrapper
+- **Form Handling**: HTML5 form validation with custom components
+- **Routing**: SvelteKit file-based routing
+
+#### Available Scripts
+
+- `dev`: Start development server
+- `build`: Build for production
+- `preview`: Preview production build
+- `check`: Run type checking
+- `check:watch`: Run type checking in watch mode
+- `lint`: Run ESLint
+- `format`: Format code with Prettier
 
 ## API Endpoints
 
@@ -105,6 +157,20 @@ orbyte/
 ├── backend/                  # Backend application
 │   ├── core/                 # Core functionality
 │   ├── models/               # Database models
+│   └── ...
+│
+├── frontend/                 # Frontend application
+│   ├── src/
+│   │   ├── lib/             # Shared utilities and components
+│   │   ├── routes/           # Application routes (pages)
+│   │   ├── app.css          # Global styles
+│   │   └── app.html          # Main HTML template
+│   ├── static/              # Static assets
+│   ├── .env                 # Frontend environment variables
+│   ├── package.json         # Dependencies and scripts
+│   └── ...
+│
+└── ...
 │   ├── routers/              # API routes
 │   ├── schemas/              # Pydantic models
 │   ├── services/             # Business logic

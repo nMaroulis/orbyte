@@ -77,19 +77,31 @@
   let availableGpus: GPU[] = [];
   let isLoadingGpus = true;
   
+  // My GPUs
+  let myGpus: GPU[] = [];
+  let isLoadingMyGpus = true;
+  let myGpusError: string | null = null;
+  
   // Fetch data
   async function fetchDashboardData() {
     try {
       // Fetch user's recent tasks
-      const [tasksRes, paymentsRes, gpusRes] = await Promise.all([
+      const [tasksRes, paymentsRes, gpusRes, myGpusRes] = await Promise.all([
         api.get<{data: Task[]}>(`${API_ENDPOINTS.TASKS.LIST}?limit=5`).catch(() => ({data: []})),
         api.get<{data: Payment[]}>(`${API_ENDPOINTS.PAYMENTS.RECEIVED}?limit=5`).catch(() => ({data: []})),
-        api.get<{data: GPU[]}>(`${API_ENDPOINTS.GPUS.LIST}?status=available&limit=5`).catch(() => ({data: []}))
+        api.get<{data: GPU[]}>(`${API_ENDPOINTS.GPUS.LIST}?status=available&limit=5`).catch(() => ({data: []})),
+        api.get<{data: GPU[]}>(`${API_ENDPOINTS.GPUS.MY_GPUS}`).catch((error) => {
+          console.error('Error fetching my GPUs:', error);
+          myGpusError = error.message || 'Failed to load your GPUs';
+          return { data: [] };
+        })
       ]);
       
       recentTasks = tasksRes?.data || [];
       recentPayments = paymentsRes?.data || [];
       availableGpus = gpusRes?.data || [];
+      myGpus = myGpusRes?.data || [];
+      myGpusError = null;
       
       // Update stats (in a real app, these would come from the API)
       stats = [
@@ -119,6 +131,7 @@
       isLoadingTasks = false;
       isLoadingPayments = false;
       isLoadingGpus = false;
+      isLoadingMyGpus = false;
     }
   }
   
@@ -279,16 +292,26 @@
           <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p class="mt-1 text-sm text-gray-500">Welcome back, {$user?.email || 'User'}! Here's what's happening with your account.</p>
         </div>
-        <div class="flex space-x-3">
-          <Button variant="outline" size="sm" class="hidden sm:inline-flex">
-            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        <div class="flex space-x-4">
+          <Button 
+            on:click={() => goto('api/tasks/new')} 
+            variant="outline" 
+            size="lg"
+            class="group hidden sm:inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+          >
+            <svg class="-ml-1 mr-3 h-5 w-5 text-gray-500 group-hover:text-gray-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
             New Task
           </Button>
-          <Button variant="primary" size="sm">
-            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          <Button 
+            on:click={() => goto('api/gpus/new')} 
+            variant="primary" 
+            size="lg"
+            class="group inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+          >
+            <svg class="-ml-1 mr-3 h-5 w-5 text-indigo-200 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             Deploy GPU
           </Button>
@@ -513,13 +536,105 @@
         </div>
       </div>
 
+      <!-- My GPUs Section -->
+      <div class="mt-8">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-medium text-gray-900">My GPUs</h2>
+          <a href="/gpus/my-gpus" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">View all my GPUs</a>
+        </div>
+        {#if isLoadingMyGpus}
+          <div class="bg-white shadow overflow-hidden rounded-lg p-6 text-center">
+            <svg class="mx-auto h-8 w-8 animate-spin text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="mt-2 text-sm text-gray-500">Loading your GPUs...</p>
+          </div>
+        {:else if myGpusError}
+          <div class="bg-red-50 border-l-4 border-red-400 p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm text-red-700">
+                  Failed to load your GPUs. Please try again.
+                </p>
+              </div>
+            </div>
+          </div>
+        {:else if myGpus.length === 0}
+          <div class="bg-white shadow overflow-hidden rounded-lg p-6 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No GPUs found</h3>
+            <p class="mt-1 text-sm text-gray-500">You haven't deployed any GPUs yet.</p>
+            <div class="mt-6">
+              <button
+                type="button"
+                on:click={() => goto('/gpus/new')}
+                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 01-1 1h-3a1 1 0 110-2h3V9a1 1 0 011-1V6a1 1 0 110-2z" clip-rule="evenodd" />
+                </svg>
+                Deploy New GPU
+              </button>
+            </div>
+          </div>
+        {:else}
+          <div class="bg-white shadow overflow-hidden rounded-lg">
+            <ul role="list" class="divide-y divide-gray-200">
+              {#each myGpus.slice(0, 3) as gpu}
+                <li class="px-6 py-4 hover:bg-gray-50 transition-colors duration-150">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10 rounded-md bg-indigo-100 flex items-center justify-center">
+                        <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">{gpu.name || 'Unnamed GPU'}</div>
+                        <div class="text-sm text-gray-500">
+                          {gpu.model} • {gpu.vram_gb}GB VRAM • ${gpu.price_per_hour?.toFixed(2)}/hr
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex items-center">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize" 
+                        class:bg-green-100={gpu.status === 'available'} 
+                        class:text-green-800={gpu.status === 'available'}
+                        class:bg-yellow-100={gpu.status === 'in_use'}
+                        class:text-yellow-800={gpu.status === 'in_use'}
+                        class:bg-red-100={gpu.status === 'offline'}
+                        class:text-red-800={gpu.status === 'offline'}
+                        class:bg-gray-100={!['available', 'in_use', 'offline'].includes(gpu.status)}
+                        class:text-gray-800={!['available', 'in_use', 'offline'].includes(gpu.status)}>
+                        {gpu.status?.replace('_', ' ')}
+                      </span>
+                    </div>
+                  </div>
+                </li>
+              {/each}
+            </ul>
+            {#if myGpus.length > 3}
+              <div class="bg-gray-50 px-6 py-4 text-right text-sm">
+                <a href="/gpus/my-gpus" class="font-medium text-indigo-600 hover:text-indigo-500">View all my GPUs</a>
+              </div>
+            {/if}
+          </div>
+        {/if}
+      </div>
+
       <!-- Available GPUs -->
       <div class="mt-8">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-lg font-medium text-gray-900">Available GPUs</h2>
-          <Button variant="ghost" size="sm" on:click={() => goto('/gpus')}>
-            View all
-          </Button>
+          <a href="/gpus" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">View all</a>
         </div>
         <div class="bg-white shadow overflow-hidden rounded-xl">
           {#if isLoadingGpus}

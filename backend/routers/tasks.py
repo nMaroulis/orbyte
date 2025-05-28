@@ -90,7 +90,6 @@ async def list_tasks(
         (models.Task.gpu.has(owner_id=current_user.id))
     )
     
-
     # Apply status filter if provided
     if status is not None:
         try:
