@@ -305,7 +305,7 @@
             New Task
           </Button>
           <Button 
-            on:click={() => goto('api/gpus/new')} 
+            on:click={() => goto('/gpus/new')} 
             variant="primary" 
             size="lg"
             class="group inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
