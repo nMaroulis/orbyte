@@ -27,6 +27,12 @@ class GPU(Base):
         price_per_hour: Price per hour in mock tokens
         status: Current status of the GPU (available/in_use/maintenance/offline)
         specs: Additional specifications and capabilities of the GPU
+        os: Operating system (e.g., 'Ubuntu 22.04', 'Windows 11')
+        cpu_model: CPU model (e.g., 'AMD Ryzen 9 5950X')
+        cpu_cores: Total number of CPU logical cores
+        ram_gb: Total system RAM in GB
+        storage_gb: Total storage capacity in GB
+        network_speed_mbps: Network speed in Mbps
     """
     __tablename__ = "gpus"
     
@@ -38,6 +44,15 @@ class GPU(Base):
     price_per_hour = Column(Float, nullable=False)  # Price in mock tokens
     status = Column(Enum(GPUStatus), default=GPUStatus.AVAILABLE, index=True)
     specs = Column(JSON, default=dict)  # Additional specs as JSON
+    
+    # System information
+    os = Column(String(100), nullable=True)  # e.g., 'Ubuntu 22.04', 'Windows 11'
+    cpu_model = Column(String(100), nullable=True)  # e.g., 'AMD Ryzen 9 5950X'
+    cpu_cores = Column(Integer, nullable=True)  # Total logical cores
+    ram_gb = Column(Integer, nullable=True)  # Total system RAM in GB
+    storage_gb = Column(Integer, nullable=True)  # Total storage in GB
+    network_speed_mbps = Column(Integer, nullable=True)  # Network speed in Mbps
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     

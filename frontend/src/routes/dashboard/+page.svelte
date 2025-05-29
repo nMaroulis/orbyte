@@ -521,27 +521,72 @@
           {:else}
             <ul class="divide-y divide-gray-200">
               {#each availableGpus as gpu}
-                <li class="px-6 py-4 hover:bg-gray-50 transition-colors duration-150">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                      <div class="flex-shrink-0 h-10 w-10 rounded-md bg-indigo-100 flex items-center justify-center">
+                <li class="group relative px-6 py-5 hover:bg-gray-50 transition-colors duration-150 border-b border-gray-100 last:border-b-0">
+                  <div class="flex items-start justify-between">
+                    <div class="flex items-start space-x-4">
+                      <div class="flex-shrink-0 h-12 w-12 rounded-lg bg-indigo-50 flex items-center justify-center">
                         <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                         </svg>
                       </div>
-                      <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-900">
-                          {gpu.name}
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center justify-between">
+                          <h3 class="text-sm font-medium text-gray-900">
+                            {gpu.name}
+                          </h3>
+                          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
+                            ${gpu.price_per_hour.toFixed(2)}/hr
+                          </span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">
+                          {gpu.model} • {gpu.vram_gb}GB VRAM • {gpu.cpu_model || 'NVIDIA GPU'}
                         </p>
-                        <p class="text-sm text-gray-500">
-                          {gpu.vram_gb}GB VRAM • {gpu.model}
-                        </p>
+                        
+                        <!-- System Information -->
+                        <div class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-500">
+                          {#if gpu.os}
+                            <div class="flex items-start">
+                              <span class="font-medium text-gray-700 w-24">OS:</span>
+                              <span class="truncate">{gpu.os}</span>
+                            </div>
+                          {/if}
+                          {#if gpu.cpu_model || gpu.cpu_cores}
+                            <div class="flex items-start">
+                              <span class="font-medium text-gray-700 w-24">CPU:</span>
+                              <span class="truncate">
+                                {gpu.cpu_model || ''}{gpu.cpu_cores ? ' (' + gpu.cpu_cores + ' cores)' : ''}
+                              </span>
+                            </div>
+                          {/if}
+                          {#if gpu.ram_gb}
+                            <div class="flex items-start">
+                              <span class="font-medium text-gray-700 w-24">RAM:</span>
+                              <span>{gpu.ram_gb} GB</span>
+                            </div>
+                          {/if}
+                          {#if gpu.storage_gb}
+                            <div class="flex items-start">
+                              <span class="font-medium text-gray-700 w-24">Storage:</span>
+                              <span>{gpu.storage_gb} GB</span>
+                            </div>
+                          {/if}
+                          {#if gpu.network_speed_mbps}
+                            <div class="flex items-start">
+                              <span class="font-medium text-gray-700 w-24">Network:</span>
+                              <span>{gpu.network_speed_mbps} Mbps</span>
+                            </div>
+                          {/if}
+                        </div>
                       </div>
                     </div>
                     <div class="ml-4 flex-shrink-0">
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        ${gpu.price_per_hour}/hr
-                      </span>
+                      <button
+                        type="button"
+                        class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        on:click|preventDefault={() => navigateTo(`/gpus/${gpu.id}`)}
+                      >
+                        View Details
+                      </button>
                     </div>
                   </div>
                 </li>

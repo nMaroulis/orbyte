@@ -39,6 +39,35 @@ class GPUBase(BaseModel):
         default_factory=dict,
         description="Additional specifications and capabilities of the GPU"
     )
+    # System information
+    os: Optional[str] = Field(
+        None,
+        description="Operating system (e.g., 'Ubuntu 22.04', 'Windows 11')"
+    )
+    cpu_model: Optional[str] = Field(
+        None,
+        description="CPU model (e.g., 'AMD Ryzen 9 5950X')"
+    )
+    cpu_cores: Optional[int] = Field(
+        None,
+        ge=1,
+        description="Total number of CPU logical cores"
+    )
+    ram_gb: Optional[int] = Field(
+        None,
+        ge=1,
+        description="Total system RAM in GB"
+    )
+    storage_gb: Optional[int] = Field(
+        None,
+        ge=1,
+        description="Total storage capacity in GB"
+    )
+    network_speed_mbps: Optional[int] = Field(
+        None,
+        ge=1,
+        description="Network speed in Mbps"
+    )
 
 # Properties to receive on GPU creation
 class GPUCreate(GPUBase):

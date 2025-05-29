@@ -119,10 +119,10 @@ def init_db():
                     }
                 ),
                 models.GPU(
-                    name="A100 - Data Center GPU",
-                    model="NVIDIA A100 40GB",
-                    vram_gb=40,
-                    price_per_hour=1.0,
+                    name="A100 - AI Workstation",
+                    model="NVIDIA A100 80GB",
+                    vram_gb=80,
+                    price_per_hour=1.5,
                     status=GPUStatus.AVAILABLE,
                     owner_id=admin_user.id,
                     specs={
@@ -132,7 +132,13 @@ def init_db():
                         "memory_bus": 5120,
                         "bandwidth": 1555,
                         "supported_models": ["Llama 3 70B", "Mistral 7B", "CodeLlama 34B"]
-                    }
+                    },
+                    os="Ubuntu 22.04 LTS",
+                    cpu_model="AMD Ryzen Threadripper 3990X",
+                    cpu_cores=64,
+                    ram_gb=512,
+                    storage_gb=4000,
+                    network_speed_mbps=1000
                 ),
                 models.GPU(
                     name="H100 - Next Gen AI",
@@ -148,7 +154,13 @@ def init_db():
                         "memory_bus": 5120,
                         "bandwidth": 3000,
                         "supported_models": ["GPT-4", "Llama 3 70B", "Mistral 7B", "CodeLlama 34B", "Llama 2 70B"]
-                    }
+                    },
+                    os="Ubuntu 20.04 LTS",
+                    cpu_model="AMD EPYC 7763",
+                    cpu_cores=128,
+                    ram_gb=1024,
+                    storage_gb=8000,
+                    network_speed_mbps=10000
                 )
             ]
             

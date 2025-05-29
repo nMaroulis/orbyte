@@ -11,6 +11,12 @@
     vram_gb: number;
     price_per_hour: number;
     status: string;
+    os?: string;
+    cpu_model?: string;
+    cpu_cores?: number;
+    ram_gb?: number;
+    storage_gb?: number;
+    network_speed_mbps?: number;
     specs: {
       cuda_cores?: number;
       tensor_cores?: number;
@@ -35,9 +41,15 @@
   $: gpuId = $page.params.id;
 
   // Format date
-  function formatDate(dateString: string | null): string {
+  function formatDate(dateString: string | null | undefined): string {
     if (!dateString) return 'Never';
     return new Date(dateString).toLocaleString();
+  }
+  
+  // Check if GPU has system info
+  function hasSystemInfo(gpu: GPU | null): boolean {
+    if (!gpu) return false;
+    return !!(gpu.os || gpu.cpu_model || gpu.cpu_cores || gpu.ram_gb || gpu.storage_gb || gpu.network_speed_mbps);
   }
 
   // Format workflows for display
@@ -99,9 +111,9 @@
     <div class="mb-6">
       <button
         on:click={() => goto('/gpus')}
-        class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 mb-4"
+        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
       >
-        <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
         Back to GPUs
@@ -129,24 +141,68 @@
       </div>
     {:else if gpu}
       <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-        <div class="px-4 py-5 sm:px-6 flex justify-between items-center border-b border-gray-200">
-          <div>
-            <h3 class="text-lg leading-6 font-medium text-gray-900">
-              {gpu?.name || 'GPU Details'}
-            </h3>
-            <p class="mt-1 max-w-2xl text-sm text-gray-500">
-              GPU Details
-            </p>
+        <div class="px-6 py-5 sm:px-8 bg-gradient-to-r from-indigo-700 to-blue-700 text-white">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-2xl font-bold">{gpu?.name || 'GPU Details'}</h1>
+              <p class="mt-1 text-sm text-indigo-100">
+                {gpu?.model || 'NVIDIA GPU'}
+              </p>
+            </div>
+            <div class="flex items-center space-x-3">
+              <span class="px-3 py-1 rounded-full text-sm font-medium bg-indigo-600 text-white">
+                {gpu?.status?.replace('_', ' ').toUpperCase() || 'UNKNOWN'}
+              </span>
+              <span class="px-3 py-1 rounded-full text-sm font-medium bg-white/20 text-white">
+                ${gpu?.price_per_hour?.toFixed(2)}/hour
+              </span>
+            </div>
           </div>
-          <div class="flex space-x-3">
-            {#if gpu}
-              <button
-                on:click={() => goto(`/gpu/${gpu.id}/configure`)}
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Configure
-              </button>
+          <div class="mt-4 flex flex-wrap gap-4 text-sm">
+            {#if gpu?.vram_gb}
+              <div class="flex items-center text-indigo-100">
+                <svg class="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 4H3m18-4h-2m2 4h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                </svg>
+                {gpu.vram_gb}GB VRAM
+              </div>
             {/if}
+            {#if gpu?.cpu_model}
+              <div class="flex items-center text-indigo-100">
+                <svg class="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                {gpu.cpu_model}{gpu.cpu_cores ? ` (${gpu.cpu_cores} cores)` : ''}
+              </div>
+            {/if}
+            {#if gpu?.ram_gb}
+              <div class="flex items-center text-indigo-100">
+                <svg class="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 4H3m18-4h-2m2 4h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                {gpu.ram_gb}GB RAM
+              </div>
+            {/if}
+          </div>
+        </div>
+        
+        <div class="px-6 py-4 bg-white border-b border-gray-200">
+          <div class="flex justify-end space-x-3">
+            <button
+              on:click={() => goto(`/gpu/${gpu.id}/configure`)}
+              class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Configure
+            </button>
+            <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Deploy
+            </button>
           </div>
         </div>
         
@@ -156,6 +212,48 @@
               <dt class="text-sm font-medium text-gray-500">Model</dt>
               <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{gpu?.model || 'N/A'}</dd>
             </div>
+            
+            {#if gpu && hasSystemInfo(gpu)}
+              <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 bg-gray-50">
+                <dt class="text-sm font-medium text-gray-500">System Information</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {#if gpu?.os}
+                      <div>
+                        <p class="text-xs text-gray-500">Operating System</p>
+                        <p class="font-medium">{gpu.os}</p>
+                      </div>
+                    {/if}
+                    {#if gpu?.cpu_model || gpu?.cpu_cores}
+                      <div>
+                        <p class="text-xs text-gray-500">CPU</p>
+                        <p class="font-medium">
+                          {gpu.cpu_model || ''}{gpu.cpu_cores ? ` (${gpu.cpu_cores} cores)` : ''}
+                        </p>
+                      </div>
+                    {/if}
+                    {#if gpu?.ram_gb}
+                      <div>
+                        <p class="text-xs text-gray-500">System RAM</p>
+                        <p class="font-medium">{gpu.ram_gb} GB</p>
+                      </div>
+                    {/if}
+                    {#if gpu?.storage_gb}
+                      <div>
+                        <p class="text-xs text-gray-500">Storage</p>
+                        <p class="font-medium">{gpu.storage_gb} GB</p>
+                      </div>
+                    {/if}
+                    {#if gpu?.network_speed_mbps}
+                      <div>
+                        <p class="text-xs text-gray-500">Network Speed</p>
+                        <p class="font-medium">{gpu.network_speed_mbps} Mbps</p>
+                      </div>
+                    {/if}
+                  </div>
+                </dd>
+              </div>
+            {/if}
             <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt class="text-sm font-medium text-gray-500">VRAM</dt>
               <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{gpu?.vram_gb ? `${gpu.vram_gb} GB` : 'N/A'}</dd>

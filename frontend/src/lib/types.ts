@@ -34,6 +34,12 @@ export interface GPU {
   status: GPUStatus;
   owner_id: number;
   specs: Record<string, any>;
+  os?: string;
+  cpu_model?: string;
+  cpu_cores?: number;
+  ram_gb?: number;
+  storage_gb?: number;
+  network_speed_mbps?: number;
   created_at: string;
   updated_at?: string;
   owner?: User;
