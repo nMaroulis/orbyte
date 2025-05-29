@@ -51,7 +51,7 @@ async def list_gpus(
     limit: int = 100,
     min_vram: Optional[int] = None,
     max_price: Optional[float] = None,
-    model: Optional[schemas.GPUModel] = None,
+    model: Optional[str] = None,
     status: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
@@ -61,13 +61,13 @@ async def list_gpus(
     query = db.query(models.GPU)
     
     # Apply filters
-    if min_vram is not None:
+    if min_vram is not None and min_vram > 0:
         query = query.filter(models.GPU.vram_gb >= min_vram)
-    if max_price is not None:
+    if max_price is not None and max_price > 0:
         query = query.filter(models.GPU.price_per_hour <= max_price)
-    if model is not None:
-        query = query.filter(models.GPU.model == model)
-    if status is not None:
+    if model is not None and model.strip() != "":
+        query = query.filter(models.GPU.model.ilike(f"%{model}%"))
+    if status is not None and status.strip() != "":
         # Handle status filter
         try:
             status_enum = schemas.GPUStatus(status.lower())
@@ -210,23 +210,20 @@ async def list_system_gpus(
 ):
     """
     List all NVIDIA GPUs available on the system
+    
+    This endpoint returns a list of NVIDIA GPUs detected on the system
+    with their details including name, memory, and other specifications.
     """
     try:
         gpus = get_system_gpus()
         return {
             "success": True,
-            "message": f"Found {len(gpus)} system GPUs",
+            "message": f"Found {len(gpus)} GPUs",
             "data": gpus
         }
-    except RuntimeError as e:
-        logger.error(f"Error getting system GPUs: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get system GPUs: {str(e)}"
-        )
     except Exception as e:
-        logger.error(f"Unexpected error getting system GPUs: {str(e)}")
+        logger.error(f"Error getting system GPUs: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred while getting system GPUs"
+            detail=f"Error getting system GPUs: {str(e)}"
         )

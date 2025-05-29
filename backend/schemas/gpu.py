@@ -3,14 +3,7 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
 from .base import ResponseModel
-
-class GPUModel(str, Enum):
-    RTX_3090 = "RTX 3090"
-    RTX_4090 = "RTX 4090"
-    A100 = "A100"
-    H100 = "H100"
-    MI250X = "MI250X"
-    OTHER = "other"
+from .llm_model import LLMModelType
 
 class GPUStatus(str, Enum):
     AVAILABLE = "available"
@@ -20,20 +13,39 @@ class GPUStatus(str, Enum):
 
 # Shared properties
 class GPUBase(BaseModel):
-    name: Optional[str] = None
-    model: Optional[GPUModel] = None
-    vram_gb: Optional[int] = None
-    price_per_hour: Optional[float] = None
-    status: Optional[GPUStatus] = GPUStatus.AVAILABLE
-    specs: Optional[Dict[str, Any]] = None
+    name: Optional[str] = Field(
+        None, 
+        description="User-defined name for the GPU"
+    )
+    model: Optional[str] = Field(
+        None,
+        description="Hardware model of the GPU (e.g., 'RTX 4090', 'A100')"
+    )
+    vram_gb: Optional[int] = Field(
+        None,
+        gt=0,
+        description="Amount of VRAM in GB"
+    )
+    price_per_hour: Optional[float] = Field(
+        None,
+        gt=0,
+        description="Price per hour in mock tokens"
+    )
+    status: GPUStatus = Field(
+        default=GPUStatus.AVAILABLE,
+        description="Current status of the GPU"
+    )
+    specs: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Additional specifications and capabilities of the GPU"
+    )
 
 # Properties to receive on GPU creation
 class GPUCreate(GPUBase):
-    name: str
-    model: GPUModel
-    vram_gb: int = Field(..., gt=0, description="VRAM in GB")
+    name: str = Field(..., min_length=1, description="Name for the GPU")
+    model: str = Field(..., min_length=1, description="Hardware model of the GPU")
+    vram_gb: int = Field(..., gt=0, description="Amount of VRAM in GB")
     price_per_hour: float = Field(..., gt=0, description="Price per hour in mock tokens")
-    specs: Dict[str, Any] = {}
 
 # Properties to receive on GPU update
 class GPUUpdate(GPUBase):

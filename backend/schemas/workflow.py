@@ -1,8 +1,9 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 from enum import Enum
 from .base import ResponseModel
+from .llm_model import LLMModelType
 
 class WorkflowType(str, Enum):
     PYTORCH_INFERENCE = "pytorch_inference"
@@ -35,29 +36,7 @@ class GPUWorkflowInDBBase(GPUWorkflowBase):
 class GPUWorkflow(GPUWorkflowInDBBase):
     pass
 
-class GPUModelBase(BaseModel):
-    model_name: str = Field(..., min_length=1)
-    model_path: Optional[str] = None
-    is_active: bool = True
-
-class GPUModelCreate(GPUModelBase):
-    pass
-
-class GPUModelUpdate(GPUModelBase):
-    model_name: Optional[str] = Field(None, min_length=1)
-    model_path: Optional[str] = None
-    is_active: Optional[bool] = None
-
-class GPUModelInDBBase(GPUModelBase):
-    id: int
-    gpu_id: int
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-class GPUModel(GPUModelInDBBase):
-    pass
+# LLM Model schemas have been moved to llm_model.py
 
 class GPUWorkflowResponse(ResponseModel):
     data: GPUWorkflow
@@ -65,12 +44,13 @@ class GPUWorkflowResponse(ResponseModel):
 class GPUWorkflowsResponse(ResponseModel):
     data: List[GPUWorkflow]
 
-class GPUModelResponse(ResponseModel):
-    data: GPUModel
-
-class GPUModelsResponse(ResponseModel):
-    data: List[GPUModel]
-
 class GPUWorkflowConfig(BaseModel):
-    supported_workflows: List[WorkflowType]
-    installed_models: List[str]
+    """Configuration for GPU workflows and installed models"""
+    supported_workflows: List[WorkflowType] = Field(
+        default_factory=list,
+        description="List of supported workflow types for the GPU"
+    )
+    installed_models: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="List of installed models with their configurations"
+    )

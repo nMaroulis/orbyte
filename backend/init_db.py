@@ -2,18 +2,21 @@ import sys
 import os
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
+from datetime import datetime, timezone
 
 # Add the backend directory to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-
 # Import database and models first to ensure proper registration
 from backend.database import engine, Base, SessionLocal
 from backend.core.security import get_password_hash
+from backend.schemas.llm_model import LLMModelType
 
 # Import all models to ensure they are registered with SQLAlchemy
 from backend.models.user import User  # noqa: F401
-from backend.models.gpu import GPU  # noqa: F401
+from backend.models.gpu import GPU, GPUStatus  # noqa: F401
+from backend.models.llm_model import LLMModel  # noqa: F401
+from backend.models.gpu_workflow import GPUWorkflow  # noqa: F401
 from backend.models.task import Task  # noqa: F401
 from backend.models.payment import Payment  # noqa: F401
 
@@ -100,10 +103,10 @@ def init_db():
             sample_gpus = [
                 models.GPU(
                     name="RTX 4090 - High Performance",
-                    model=schemas.GPUModel.RTX_4090,
+                    model="NVIDIA GeForce RTX 4090",
                     vram_gb=24,
                     price_per_hour=0.5,
-                    status=schemas.GPUStatus.AVAILABLE,
+                    status=GPUStatus.AVAILABLE,
                     owner_id=admin_user.id,
                     specs={
                         "cuda_cores": 16384,
@@ -111,37 +114,40 @@ def init_db():
                         "boost_clock": 2520,
                         "memory_type": "GDDR6X",
                         "memory_bus": 384,
-                        "bandwidth": 1008
+                        "bandwidth": 1008,
+                        "supported_models": ["GPT-4", "Llama 3 70B", "Mistral 7B"]
                     }
                 ),
                 models.GPU(
                     name="A100 - Data Center GPU",
-                    model=schemas.GPUModel.A100,
+                    model="NVIDIA A100 40GB",
                     vram_gb=40,
                     price_per_hour=1.0,
-                    status=schemas.GPUStatus.AVAILABLE,
+                    status=GPUStatus.AVAILABLE,
                     owner_id=admin_user.id,
                     specs={
                         "cuda_cores": 6912,
                         "tensor_cores": 432,
                         "memory_type": "HBM2",
                         "memory_bus": 5120,
-                        "bandwidth": 1555
+                        "bandwidth": 1555,
+                        "supported_models": ["Llama 3 70B", "Mistral 7B", "CodeLlama 34B"]
                     }
                 ),
                 models.GPU(
                     name="H100 - Next Gen AI",
-                    model=schemas.GPUModel.H100,
+                    model="NVIDIA H100 80GB",
                     vram_gb=80,
                     price_per_hour=2.0,
-                    status=schemas.GPUStatus.AVAILABLE,
+                    status=GPUStatus.AVAILABLE,
                     owner_id=admin_user.id,
                     specs={
                         "cuda_cores": 16896,
                         "tensor_cores": 528,
                         "memory_type": "HBM3",
                         "memory_bus": 5120,
-                        "bandwidth": 3000
+                        "bandwidth": 3000,
+                        "supported_models": ["GPT-4", "Llama 3 70B", "Mistral 7B", "CodeLlama 34B", "Llama 2 70B"]
                     }
                 )
             ]
@@ -149,6 +155,31 @@ def init_db():
             db.add_all(sample_gpus)
             db.commit()
             print(f"✅ Created {len(sample_gpus)} sample GPUs")
+            
+            # Create some sample LLM models for the GPUs
+            print("Creating sample LLM models...")
+            sample_models = []
+            for gpu in sample_gpus:
+                sample_models.extend([
+                    LLMModel(
+                        gpu_id=gpu.id,
+                        model_type=LLMModelType.GPT_4_TURBO,
+                        model_name="GPT-4 Turbo",
+                        model_path="/models/gpt-4-turbo",
+                        is_active=True
+                    ),
+                    LLMModel(
+                        gpu_id=gpu.id,
+                        model_type=LLMModelType.LLAMA_3_70B,
+                        model_name="Llama 3 70B",
+                        model_path="/models/llama-3-70b",
+                        is_active=True
+                    )
+                ])
+            
+            db.add_all(sample_models)
+            db.commit()
+            print(f"✅ Created {len(sample_models)} sample LLM models")
         else:
             print(f"ℹ️  Found {gpu_count} existing GPUs")
         

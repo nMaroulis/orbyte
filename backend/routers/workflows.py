@@ -1,13 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Dict, Any
 
 from .. import models
 from ..models.gpu_workflow import GPUWorkflow, WorkflowType, WorkflowStatus
-from ..models.gpu_model import GPUModel
+from ..models.llm_model import LLMModel, LLMModelType
 from ..schemas.workflow import (
-    GPUWorkflowCreate, GPUWorkflowResponse, GPUWorkflowsResponse,
-    GPUModelCreate, GPUModelResponse, GPUModelsResponse, GPUWorkflowConfig
+    GPUWorkflowCreate, GPUWorkflowResponse, GPUWorkflowsResponse, GPUWorkflowConfig
+)
+from ..schemas.llm_model import (
+    LLMModelCreate, LLMModelResponse, LLMModelsResponse, LLMModelUpdate
 )
 from ..database import get_db
 from ..core.security import get_current_active_user
@@ -116,15 +118,15 @@ async def remove_workflow_from_gpu(
     return {"success": True, "message": "Workflow removed successfully"}
 
 # Model endpoints
-@router.post("/models", response_model=GPUModelResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/models", response_model=LLMModelResponse, status_code=status.HTTP_201_CREATED)
 async def add_model_to_gpu(
     gpu_id: int,
-    model: GPUModelCreate,
+    model: LLMModelCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user)
 ):
     """
-    Add an installed model to a GPU
+    Add an installed LLM model to a GPU
     """
     # Verify GPU exists and belongs to the current user
     db_gpu = db.query(models.GPU).filter(
@@ -136,37 +138,44 @@ async def add_model_to_gpu(
         raise HTTPException(status_code=404, detail="GPU not found")
     
     # Check if model already exists
-    existing = db.query(GPUModel).filter(
-        GPUModel.gpu_id == gpu_id,
-        GPUModel.model_name == model.model_name
+    existing = db.query(LLMModel).filter(
+        LLMModel.gpu_id == gpu_id,
+        LLMModel.model_name == model.model_name
     ).first()
     
     if existing:
-        raise HTTPException(status_code=400, detail="Model with this name already exists for this GPU")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Model with this name already exists for this GPU"
+        )
     
     # Create new model
-    db_model = GPUModel(
+    db_model = LLMModel(
         gpu_id=gpu_id,
-        model_name=model.model_name,
         model_type=model.model_type,
-        model_path=model.model_path if hasattr(model, 'model_path') else None,
-        model_config=model.model_config if hasattr(model, 'model_config') else {}
+        model_name=model.model_name,
+        model_path=model.model_path,
+        is_active=model.is_active
     )
     
     db.add(db_model)
     db.commit()
     db.refresh(db_model)
     
-    return {"success": True, "message": "Model added successfully", "data": db_model}
+    return {
+        "success": True, 
+        "message": "LLM model added to GPU", 
+        "data": db_model
+    }
 
-@router.get("/models", response_model=GPUModelsResponse)
+@router.get("/models", response_model=LLMModelsResponse)
 async def get_gpu_models(
     gpu_id: int,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user)
 ):
     """
-    Get all installed models for a specific GPU
+    Get all installed LLM models for a specific GPU
     """
     # Verify GPU exists and belongs to the current user
     db_gpu = db.query(models.GPU).filter(
@@ -177,10 +186,14 @@ async def get_gpu_models(
     if not db_gpu:
         raise HTTPException(status_code=404, detail="GPU not found")
     
-    models = db.query(GPUModel).filter(GPUModel.gpu_id == gpu_id).all()
-    return {"success": True, "message": f"Found {len(models)} models", "data": models}
+    models = db.query(LLMModel).filter(LLMModel.gpu_id == gpu_id).all()
+    return {
+        "success": True, 
+        "message": f"Found {len(models)} LLM models", 
+        "data": models
+    }
 
-@router.delete("/models/{model_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/models/{model_id}", status_code=status.HTTP_200_OK)
 async def remove_model_from_gpu(
     gpu_id: int,
     model_id: int,
@@ -188,7 +201,7 @@ async def remove_model_from_gpu(
     current_user: models.User = Depends(get_current_active_user)
 ):
     """
-    Remove a model from a GPU
+    Remove an LLM model from a GPU
     """
     # Verify GPU exists and belongs to the current user
     db_gpu = db.query(models.GPU).filter(
@@ -197,21 +210,33 @@ async def remove_model_from_gpu(
     ).first()
     
     if not db_gpu:
-        raise HTTPException(status_code=404, detail="GPU not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="GPU not found"
+        )
     
-    # Find and delete the model
-    model = db.query(GPUModel).filter(
-        GPUModel.id == model_id,
-        GPUModel.gpu_id == gpu_id
+    # Verify model exists and belongs to the current user
+    db_model = db.query(LLMModel).join(
+        models.GPU, LLMModel.gpu_id == models.GPU.id
+    ).filter(
+        LLMModel.id == model_id,
+        models.GPU.owner_id == current_user.id
     ).first()
     
-    if not model:
-        raise HTTPException(status_code=404, detail="Model not found")
+    if not db_model:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="LLM model not found"
+        )
     
-    db.delete(model)
+    # Delete the model
+    db.delete(db_model)
     db.commit()
     
-    return {"success": True, "message": "Model removed successfully"}
+    return {
+        "success": True, 
+        "message": "LLM model removed from GPU"
+    }
 
 @router.post("/configure-workflows", response_model=dict)
 async def configure_gpu_workflows(
@@ -221,7 +246,7 @@ async def configure_gpu_workflows(
     current_user: models.User = Depends(get_current_active_user)
 ):
     """
-    Configure workflows and models for a GPU in a single request
+    Configure workflows and LLM models for a GPU in a single request
     """
     # Verify GPU exists and belongs to the current user
     db_gpu = db.query(models.GPU).filter(
@@ -230,32 +255,35 @@ async def configure_gpu_workflows(
     ).first()
     
     if not db_gpu:
-        raise HTTPException(status_code=404, detail="GPU not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="GPU not found"
+        )
     
     # Start a transaction
     try:
         # Clear existing workflows and models
         db.query(GPUWorkflow).filter(GPUWorkflow.gpu_id == gpu_id).delete()
-        db.query(GPUModel).filter(GPUModel.gpu_id == gpu_id).delete()
+        db.query(LLMModel).filter(LLMModel.gpu_id == gpu_id).delete()
         
         # Add new workflows
-        for workflow in config.workflows:
+        for workflow in config.supported_workflows:
             db_workflow = GPUWorkflow(
                 gpu_id=gpu_id,
-                workflow_type=workflow.workflow_type,
-                status=workflow.status if hasattr(workflow, 'status') else WorkflowStatus.PENDING,
-                config=workflow.config if hasattr(workflow, 'config') else {}
+                workflow_type=workflow,
+                status=WorkflowStatus.PENDING,
+                config={}
             )
             db.add(db_workflow)
         
         # Add new models
-        for model in config.installed_models:
-            db_model = GPUModel(
+        for model_data in config.installed_models:
+            db_model = LLMModel(
                 gpu_id=gpu_id,
-                model_name=model.model_name,
-                model_type=model.model_type,
-                model_path=model.model_path if hasattr(model, 'model_path') else None,
-                model_config=model.model_config if hasattr(model, 'model_config') else {}
+                model_name=model_data.get('model_name', 'Unnamed Model'),
+                model_type=model_data.get('model_type', LLMModelType.GPT_3_5_TURBO),
+                model_path=model_data.get('model_path'),
+                is_active=model_data.get('is_active', True)
             )
             db.add(db_model)
         
@@ -263,7 +291,7 @@ async def configure_gpu_workflows(
         
         # Get updated lists
         workflows = db.query(GPUWorkflow).filter(GPUWorkflow.gpu_id == gpu_id).all()
-        models = db.query(GPUModel).filter(GPUModel.gpu_id == gpu_id).all()
+        models = db.query(LLMModel).filter(LLMModel.gpu_id == gpu_id).all()
         
         return {
             "success": True,
@@ -276,4 +304,7 @@ async def configure_gpu_workflows(
         
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update GPU configuration: {str(e)}"
+        )
