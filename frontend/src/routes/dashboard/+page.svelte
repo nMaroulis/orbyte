@@ -18,13 +18,64 @@
   import { api } from '$lib/api/client';
   import type { GPU, Task, Payment } from '$lib/types';
   
-  // Stats
-  let stats = [
-    { name: 'Total GPUs', value: '0', change: '+0%', changeType: 'increase' },
-    { name: 'Active Tasks', value: '0', change: '+0%', changeType: 'decrease' },
-    { name: 'Total Earnings', value: '$0', change: '+0%', changeType: 'increase' },
-    { name: 'Tasks Completed', value: '0', change: '+0%', changeType: 'increase' },
+  // Types for stats
+  type StatColor = 'indigo' | 'blue' | 'green' | 'purple' | 'emerald';
+  
+  interface StatItem {
+    name: string;
+    value: string;
+    icon: string;
+    color: StatColor;
+  }
+  
+  interface ColorMapItem {
+    bg: string;
+    icon: string;
+    iconBg: string;
+  }
+  
+  // Stats with distinct colors
+  let stats: StatItem[] = [
+    { 
+      name: 'Total GPUs', 
+      value: '0',
+      icon: 'M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z',
+      color: 'blue'  // Blue for GPUs
+    },
+    { 
+      name: 'Active Tasks', 
+      value: '0',
+      icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
+      color: 'indigo'  // Indigo for tasks
+    },
+    { 
+      name: 'Tasks Completed', 
+      value: '0',
+      icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+      color: 'green'  // Green for completed tasks
+    },
+    { 
+      name: 'Total Earnings', 
+      value: '$0',
+      icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+      color: 'purple'  // Purple for earnings
+    },
+    { 
+      name: 'Balance', 
+      value: '$0.00',
+      icon: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z',
+      color: 'emerald'  // Amber for balance (changed from emerald to amber for better distinction)
+    }
   ];
+  
+  // Color map for stats cards with more distinct colors
+  const colorMap: Record<StatColor, ColorMapItem> = {
+    indigo: { bg: 'from-indigo-50 to-indigo-100', icon: 'text-indigo-600', iconBg: 'bg-indigo-100' },
+    blue: { bg: 'from-blue-50 to-blue-100', icon: 'text-blue-600', iconBg: 'bg-blue-100' },
+    green: { bg: 'from-green-50 to-green-100', icon: 'text-green-600', iconBg: 'bg-green-100' },
+    purple: { bg: 'from-purple-50 to-purple-100', icon: 'text-purple-600', iconBg: 'bg-purple-100' },
+    emerald: { bg: 'from-amber-50 to-amber-100', icon: 'text-amber-600', iconBg: 'bg-amber-100' }
+  };
   
   // Recent tasks
   let recentTasks: Task[] = [];
@@ -64,28 +115,24 @@
       myGpus = myGpusRes?.data || [];
       myGpusError = null;
       
-      // Update stats (in a real app, these would come from the API)
-      stats = [
-        { name: 'Total GPUs', value: availableGpus.length.toString(), change: '+0%', changeType: 'increase' },
-        { 
-          name: 'Active Tasks', 
-          value: recentTasks.filter(t => ['pending', 'running'].includes(t.status)).length.toString(), 
-          change: '+0%', 
-          changeType: 'decrease' 
-        },
-        { 
-          name: 'Total Earnings', 
-          value: `$${recentPayments.reduce((sum, p) => sum + p.amount, 0).toFixed(2)}`, 
-          change: '+0%', 
-          changeType: 'increase' 
-        },
-        { 
-          name: 'Tasks Completed', 
-          value: recentTasks.filter(t => t.status === 'completed').length.toString(), 
-          change: '+0%', 
-          changeType: 'increase' 
-        },
-      ];
+      // Update stats with actual data
+      stats = stats.map((stat: StatItem) => {
+        switch(stat.name) {
+          case 'Total GPUs':
+            return { ...stat, value: availableGpus.length.toString() };
+          case 'Active Tasks':
+            return { ...stat, value: recentTasks.filter(t => ['pending', 'running'].includes(t.status)).length.toString() };
+          case 'Total Earnings':
+            return { ...stat, value: `$${recentPayments.reduce((sum, p) => sum + p.amount, 0).toFixed(2)}` };
+          case 'Tasks Completed':
+            return { ...stat, value: recentTasks.filter(t => t.status === 'completed').length.toString() };
+          case 'Balance':
+            // In a real app, this would come from the user's account balance
+            return { ...stat, value: `$${(100 + Math.random() * 500).toFixed(2)}` };
+          default:
+            return stat;
+        }
+      });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -184,66 +231,33 @@
       </div>
 
       <!-- Stats Grid -->
-      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
         {#each stats as stat}
-          <div class="bg-white overflow-hidden shadow rounded-xl transition-all duration-200 hover:shadow-lg">
-            <div class="p-5">
-              <div class="flex items-center">
-                <div class="flex-shrink-0 rounded-md p-3" class:bg-indigo-100={stat.name === 'Total GPUs'}
-                  class:bg-green-100={stat.name === 'Tasks Completed'}
-                  class:bg-blue-100={stat.name === 'Active Tasks'}
-                  class:bg-purple-100={stat.name === 'Total Earnings'}>
-                  {#if stat.name === 'Total GPUs'}
-                    <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-                    </svg>
-                  {:else if stat.name === 'Active Tasks'}
-                    <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                  {:else if stat.name === 'Total Earnings'}
-                    <svg class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  {:else}
-                    <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  {/if}
-                </div>
-                <div class="ml-5 w-0 flex-1">
-                  <dt class="text-sm font-medium text-gray-500 truncate">
-                    {stat.name}
-                  </dt>
-                  <dd class="flex items-baseline">
-                    <div class="text-2xl font-semibold text-gray-900">
-                      {stat.value}
-                    </div>
-                    <div class="ml-2 flex items-baseline text-sm font-semibold" 
-                      class:!text-green-600={stat.changeType === 'increase'}
-                      class:!text-red-600={stat.changeType === 'decrease'}>
-                      {#if stat.changeType === 'increase'}
-                        <svg class="self-center flex-shrink-0 h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M12 7a1 1 0 01.707.293l4 4a1 1 0 01-1.414 1.414L12 9.414 8.707 12.707a1 1 0 01-1.414-1.414l4-4A1 1 0 0112 7z" clip-rule="evenodd" />
-                        </svg>
-                      {:else}
-                        <svg class="self-center flex-shrink-0 h-4 w-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M12 13a1 1 0 01-.707-.293l-4-4a1 1 0 011.414-1.414L12 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4A1 1 0 0112 13z" clip-rule="evenodd" />
-                        </svg>
-                      {/if}
-                      <span class="sr-only">
-                        {stat.changeType === 'increase' ? 'Increased' : 'Decreased'} by
-                      </span>
-                      {stat.change}
-                    </div>
-                  </dd>
+          <div 
+            class="relative overflow-hidden rounded-xl p-4 transition-all duration-200 hover:shadow-md bg-gradient-to-br {colorMap[stat.color].bg}"
+          >
+            <div class="relative z-10">
+              <div class="flex items-center justify-between">
+                <div class={`flex-shrink-0 rounded-lg p-2 ${colorMap[stat.color].iconBg}`}>
+                  <svg class={`h-5 w-5 ${colorMap[stat.color].icon}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{stat.icon}" />
+                  </svg>
                 </div>
               </div>
+              <div class="mt-3">
+                <dt class="text-xs font-medium text-gray-600 truncate">
+                  {stat.name}
+                </dt>
+                <dd class="mt-1 text-xl font-semibold text-gray-900">
+                  {stat.value}
+                </dd>
+              </div>
             </div>
-            <div class="px-5 py-3 bg-gray-50 text-right text-sm">
-              <Button variant="ghost" size="sm" on:click={() => goto('/tasks')}>
-                View all
-              </Button>
+            <!-- Decorative element -->
+            <div class="absolute -bottom-4 -right-4 opacity-20">
+              <svg class="h-16 w-16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="{stat.icon}" />
+              </svg>
             </div>
           </div>
         {/each}

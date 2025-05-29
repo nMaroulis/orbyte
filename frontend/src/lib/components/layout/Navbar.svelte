@@ -89,7 +89,7 @@
   });
 </script>
 
-<header class="bg-white shadow-sm">
+<header class="bg-white shadow-sm relative z-50">
   <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Top">
     <div class="flex justify-between h-16">
       <div class="flex items-center">
@@ -173,7 +173,7 @@
             
             {#if showUserMenu}
               <div 
-                class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10" 
+                class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none user-menu z-50" 
                 role="menu" 
                 aria-orientation="vertical"
                 tabindex="0"
