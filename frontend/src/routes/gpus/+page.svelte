@@ -11,9 +11,11 @@
     vram_gb: number;
     price_per_hour: number;
     status: string;
-    specs: Record<string, any>;
-    supported_workflows?: Array<{ workflow_type: string }>;
-    installed_models?: Array<{ model_name: string }>;
+    specs: {
+      supported_models?: string[];
+      [key: string]: any;
+    };
+    supported_workflows?: string[];
   }
 
   let gpus: GPU[] = [];
@@ -39,20 +41,18 @@
     }
   }
 
-  function formatWorkflows(workflows: Array<{ workflow_type: string }> = []) {
-    if (!workflows || workflows.length === 0) return 'None';
-    return workflows.map(w => {
-      const type = w.workflow_type;
-      return type
+  function formatWorkflows(workflows: string[] = []) {
+    if (!workflows || workflows.length === 0) return [];
+    return workflows.map(type => 
+      type
         .split('_')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-    }).join(', ');
+        .join(' ')
+    );
   }
 
-  function formatModels(models: Array<{ model_name: string }> = []) {
-    if (!models || models.length === 0) return 'None';
-    return models.map(m => m.model_name).join(', ');
+  function formatModels(models: string[] = []) {
+    return models || [];
   }
 
   onMount(() => {
@@ -135,19 +135,22 @@
                           {gpu.status}
                         </span>
                       </td>
-                      <td class="px-3 py-4 text-sm text-gray-500 max-w-xs truncate" title={formatWorkflows(gpu.supported_workflows)}>
-                        {formatWorkflows(gpu.supported_workflows)}
+                      <td class="px-3 py-4 text-sm text-gray-500" title={formatWorkflows(gpu.supported_workflows).join(', ')}>
+                        <div class="flex items-center">
+                          <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-indigo-100 text-indigo-800 text-xs font-medium mr-2">
+                            {gpu.supported_workflows?.length || 0}
+                          </span>
+                        </div>
                       </td>
-                      <td class="px-3 py-4 text-sm text-gray-500 max-w-xs truncate" title={formatModels(gpu.installed_models)}>
-                        {formatModels(gpu.installed_models)}
+                      <td class="px-3 py-4 text-sm text-gray-500" title={formatModels(gpu.specs.supported_models).join(', ')}>
+                        <div class="flex items-center">
+                          <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-blue-100 text-blue-800 text-xs font-medium mr-2">
+                            {gpu.specs.supported_models?.length || 0}
+                          </span>
+                        </div>
                       </td>
                       <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <button
-                          on:click={() => goto(`/gpus/${gpu.id}/configure`)}
-                          class="text-blue-600 hover:text-blue-900 mr-4"
-                        >
-                          Configure
-                        </button>
+                        <!-- Configuration moved to New GPU page -->
                       </td>
                     </tr>
                   {/each}
