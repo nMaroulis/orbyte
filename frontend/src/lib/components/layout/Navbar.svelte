@@ -15,6 +15,7 @@
   // Navigation items
   const mainNavItems = [
     { name: 'Dashboard', path: '/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+    { name: 'GPUs', path: '/gpus', icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
     { name: 'Orbyte Chat', path: '/chat', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.308-3.076C3.88 15.611 3 13.9 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
   ];
   
@@ -135,7 +136,16 @@
       
       <div class="hidden md:flex items-center space-x-4">
         {#if $user?.email}
-          <div class="relative ml-4 user-menu">
+          <!-- Balance Display -->
+          <div class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-medium shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 320 512">
+              <path fill="currentColor" d="M311.9 260.8L160 353.6 8 260.8 160 0l151.9 260.8zM160 383.4L8 290.6 160 512l152-221.4-152 92.8z"/>
+            </svg>
+            <span>0.0</span>
+          </div>
+          
+          <!-- User Menu -->
+          <div class="relative ml-2 user-menu">
             <button 
               type="button" 
               class="flex items-center max-w-xs rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

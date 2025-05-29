@@ -4,7 +4,7 @@
   import { fade } from 'svelte/transition';
   import { API_BASE_URL } from '$lib/api/config';
   
-  let appVersion = '1.0.0';
+  let appVersion = '0.04.20';
   
   onMount(async () => {
     try {
@@ -20,17 +20,17 @@
   const features = [
     {
       name: 'Easy GPU Management',
-      description: 'Deploy and manage your GPU resources with just a few clicks.',
+      description: 'Deploy and manage your GPU resources with just a few clicks and earn money. Find a GPU on the store to deploy and run your own genAI tasks.',
       icon: 'M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25'
     },
     {
       name: 'AI-Powered Chat',
-      description: 'Interact with various AI models through our intuitive chat interface.',
+      description: 'Interact with various AI models through our intuitive chat interface. Let Orbyte find the inference GPU for you.',
       icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.308-3.076C3.88 15.611 3 13.9 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'
     },
     {
       name: 'Task Automation',
-      description: 'Automate repetitive tasks and streamline your workflow.',
+      description: 'Automate repetitive tasks and streamline your AI workflow.',
       icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'
     },
     {
@@ -42,9 +42,9 @@
   
   const team = [
     {
-      name: 'Orbyte Team',
-      role: 'Development Team',
-      image: 'https://images.unsplash.com/photo-1519244703995-f4e0f30606f3?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+      name: 'Nikolaos Maroulis',
+      role: 'AI Engineer',
+      image: 'https://avatars.githubusercontent.com/u/19670139?v=4',
       description: 'Building the future of GPU resource management and AI interactions.'
     }
   ];
@@ -62,7 +62,10 @@
               <span class="block text-indigo-600">Orbyte</span>
             </h1>
             <p class="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-              Empowering developers and researchers with powerful GPU resources and AI capabilities.
+              Orbyte is a <strong>decentralized platform</strong> that enables anyone to rent out their idle <strong>GPUs</strong> for <strong>generative AI workloads</strong> — and get rewarded in <strong>crypto</strong> or <strong>USD</strong>. Whether you have spare compute power or need it for inference tasks, Orbyte connects supply and demand in a secure, efficient, and open way.
+            </p>  
+            <p class="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+              Our <strong>mission</strong> is to unlock the global GPU grid for AI innovation — powered by open-source code, smart contracts, and a peer-to-peer marketplace
             </p>
             <div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
               <div class="rounded-md shadow">
@@ -81,7 +84,7 @@
       </div>
     </div>
     <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-      <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2850&q=80" alt="">
+      <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" src="https://www.embl.org/news/wp-content/uploads/2020/10/BRAZMA_Machine_Learning_1000x600.jpg" alt="">
     </div>
   </div>
 

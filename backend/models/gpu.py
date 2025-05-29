@@ -1,8 +1,13 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, Enum, JSON, DateTime
+from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, Enum, JSON, DateTime, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
+from datetime import datetime
 from ..database import Base
+
+# Import the models to ensure they're registered with SQLAlchemy
+from .gpu_workflow import GPUWorkflow
+from .gpu_model import GPUModel
 
 class GPUStatus(str, enum.Enum):
     AVAILABLE = "available"
@@ -35,3 +40,5 @@ class GPU(Base):
     # Relationships
     owner = relationship("User", back_populates="gpus")
     tasks = relationship("Task", back_populates="gpu")
+    supported_workflows = relationship("GPUWorkflow", back_populates="gpu", cascade="all, delete-orphan")
+    installed_models = relationship("GPUModel", back_populates="gpu", cascade="all, delete-orphan")
