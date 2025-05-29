@@ -112,19 +112,39 @@
     
     <!-- Logo overlay -->
     <div class="absolute top-0 left-0 p-8 z-10">
-      <h1 class="text-3xl font-bold text-white">Orbyte</h1>
-      <p class="text-indigo-100">Data in motion</p>
+      <div class="relative">
+        <!-- Glow effect -->
+        <div class="absolute -inset-4 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full blur-2xl opacity-30"></div>
+        
+        <!-- Main container -->
+        <div class="relative">
+          <h1 class="text-5xl font-black text-amber-300 drop-shadow-lg">
+            <span class="relative">
+              <span class="relative z-10">Orbyte</span>
+              <span class="absolute inset-0 text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-400 opacity-70 blur-md">Orbyte</span>
+            </span>
+          </h1>
+          <div class="flex items-center mt-3 space-x-3">
+            <div class="h-0.5 w-8 bg-gradient-to-r from-amber-300 to-yellow-400"></div>
+            <p class="text-sm font-semibold text-amber-100 tracking-wider">DATA IN MOTION</p>
+            <div class="h-0.5 w-8 bg-gradient-to-r from-yellow-400 to-amber-300"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   
   <!-- Login form container (35% width) -->
-  <div class="w-full lg:w-[35%] bg-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="w-full lg:w-[35%] flex items-center justify-center p-4 sm:p-6 lg:p-8">
     <div class="w-full max-w-md">
       <div class="lg:hidden mb-8 text-center">
-        <h1 class="text-3xl font-bold text-gray-900">Orbyte</h1>
-        <p class="mt-2 text-gray-600">GPU Computing Platform</p>
+        <h1 class="text-3xl font-bold text-white drop-shadow-lg">Orbyte</h1>
+        <p class="mt-2 text-indigo-100 font-medium">GPU Computing Platform</p>
       </div>
-      <form class="bg-white rounded-2xl shadow-xl p-8 space-y-5" on:submit|preventDefault={handleSubmit}>
+      <form 
+        class="backdrop-blur-sm bg-white/90 rounded-2xl shadow-2xl p-8 space-y-5 border border-white/20 hover:border-white/30 transition-all duration-300 hover:shadow-indigo-500/20 hover:shadow-lg" 
+        on:submit|preventDefault={handleSubmit}
+      >
         <h2 class="text-2xl font-bold text-gray-900 mb-6">Sign in to your account</h2>
         {#if error}
           <div class="mb-4 bg-red-50 border-l-4 border-red-400 p-4">
