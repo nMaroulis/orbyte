@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  const API_URL = import.meta.env.VITE_API_URL;
   import { goto } from '$app/navigation';
+  import { api } from '$lib/api/client';
+  import { API_ENDPOINTS } from '$lib/api/config';
 
   interface GPU {
     id: number;
@@ -22,19 +23,17 @@
   async function fetchGPUs() {
     try {
       isLoading = true;
-      const response = await fetch(`${API_URL}/api/gpus?status=available&limit=100`, {
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        gpus = data.data || [];
-      } else {
-        throw new Error('Failed to fetch GPUs');
-      }
+      error = '';
+      
+      const response = await api.get<{ data: GPU[] }>(
+        `${API_ENDPOINTS.GPUS.LIST}?status=available&limit=100`
+      );
+      
+      gpus = response.data || [];
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch GPUs';
       error = 'Failed to load GPUs. Please try again later.';
-      console.error('Error fetching GPUs:', err);
+      console.error('Error fetching GPUs:', errorMessage);
     } finally {
       isLoading = false;
     }
@@ -123,8 +122,10 @@
                 <tbody class="divide-y divide-gray-200 bg-white">
                   {#each gpus as gpu}
                     <tr>
-                      <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                        {gpu.name}
+                      <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-blue-600 hover:text-blue-900 sm:pl-6">
+                        <button on:click={() => goto(`/gpus/${gpu.id}`)} class="text-left hover:underline">
+                          {gpu.name}
+                        </button>
                       </td>
                       <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{gpu.model}</td>
                       <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{gpu.vram_gb} GB</td>
@@ -142,7 +143,7 @@
                       </td>
                       <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                         <button
-                          on:click={() => goto(`/gpu/${gpu.id}/configure`)}
+                          on:click={() => goto(`/gpus/${gpu.id}/configure`)}
                           class="text-blue-600 hover:text-blue-900 mr-4"
                         >
                           Configure

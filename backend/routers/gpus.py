@@ -1,10 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
-from typing import List, Optional, Dict, Any
+from sqlalchemy.orm import Session, joinedload
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 import logging
 
-from .. import models, schemas
+from .. import models
+from ..schemas import (
+    GPUDetailResponse, GPUStatus, GPUResponse, GPUsResponse, 
+    GPU, GPUCreate, GPUUpdate
+)
 from ..database import get_db
 from ..core.security import get_current_active_user
 from ..utils.gpu_detection import get_system_gpus
@@ -19,9 +23,9 @@ router = APIRouter(
     redirect_slashes=False  # Handle both with and without trailing slashes
 )
 
-@router.post("/", response_model=schemas.GPUResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=GPUResponse, status_code=status.HTTP_201_CREATED)
 async def register_gpu(
-    gpu: schemas.GPUCreate,
+    gpu: GPUCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user)
 ):
@@ -31,7 +35,7 @@ async def register_gpu(
     db_gpu = models.GPU(
         **gpu.dict(),
         owner_id=current_user.id,
-        status=schemas.GPUStatus.AVAILABLE
+        status=GPUStatus.AVAILABLE
     )
     
     db.add(db_gpu)
@@ -44,8 +48,8 @@ async def register_gpu(
         "data": db_gpu
     }
 
-@router.get("", response_model=schemas.GPUsResponse)
-@router.get("/", response_model=schemas.GPUsResponse)
+@router.get("", response_model=GPUsResponse)
+@router.get("/", response_model=GPUsResponse)
 async def list_gpus(
     skip: int = 0,
     limit: int = 100,
@@ -70,7 +74,7 @@ async def list_gpus(
     if status is not None and status.strip() != "":
         # Handle status filter
         try:
-            status_enum = schemas.GPUStatus(status.lower())
+            status_enum = GPUStatus(status.lower())
             query = query.filter(models.GPU.status == status_enum)
         except ValueError:
             # If status is not valid, return empty list
@@ -88,7 +92,7 @@ async def list_gpus(
         "data": gpus
     }
 
-@router.get("/my-gpus", response_model=schemas.GPUsResponse)
+@router.get("/my-gpus", response_model=GPUsResponse)
 async def list_my_gpus(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user)
@@ -106,7 +110,99 @@ async def list_my_gpus(
         "data": gpus
     }
 
-@router.get("/{gpu_id}", response_model=schemas.GPUResponse)
+@router.get("/{gpu_id}/details", response_model=GPUDetailResponse)
+async def get_gpu_details(
+    gpu_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    """
+    Get detailed information about a specific GPU including workflows and models
+    """
+    # Get the GPU with relationships loaded
+    gpu = db.query(models.GPU).filter(models.GPU.id == gpu_id).first()
+    
+    if not gpu:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"GPU with ID {gpu_id} not found"
+        )
+    
+    # Check if user is owner or admin (for future reference in the response)
+    is_owner = gpu.owner_id == current_user.id
+    is_admin = current_user.is_admin
+    can_edit = is_owner or is_admin
+    
+    # Get workflows for this GPU
+    workflows = db.query(models.GPUWorkflow).filter(
+        models.GPUWorkflow.gpu_id == gpu_id
+    ).all()
+    
+    # Get models for this GPU
+    gpu_models = db.query(models.LLMModel).filter(
+        models.LLMModel.gpu_id == gpu_id
+    ).all()
+    
+    # Convert SQLAlchemy objects to dictionaries
+    gpu_data = {
+        "id": gpu.id,
+        "name": gpu.name,
+        "model": gpu.model,
+        "vram_gb": gpu.vram_gb,
+        "price_per_hour": gpu.price_per_hour,
+        "status": gpu.status.value,
+        "os": gpu.os,
+        "cpu_model": gpu.cpu_model,
+        "cpu_cores": gpu.cpu_cores,
+        "ram_gb": gpu.ram_gb,
+        "storage_gb": gpu.storage_gb,
+        "network_speed_mbps": gpu.network_speed_mbps,
+        "specs": gpu.specs or {},
+        "created_at": gpu.created_at,
+        "updated_at": gpu.updated_at
+    }
+    
+    workflows_data = [
+        {
+            "id": wf.id,
+            "workflow_type": wf.workflow_type.value,
+            "status": wf.status.value,
+            "config": wf.config or {},
+            "created_at": wf.created_at,
+            "updated_at": wf.updated_at
+        }
+        for wf in workflows
+    ]
+    
+    models_data = [
+        {
+            "id": model.id,
+            "model_type": model.model_type,
+            "model_name": model.model_name,
+            "model_path": model.model_path,
+            "is_active": model.is_active,
+            "created_at": model.created_at,
+            "updated_at": model.updated_at
+        }
+        for model in gpu_models
+    ]
+    
+    return {
+        "success": True,
+        "message": "GPU details retrieved successfully",
+        "data": {
+            "gpu": gpu_data,
+            "workflows": workflows_data,
+            "models": models_data,
+            "permissions": {
+                "can_edit": can_edit,
+                "is_owner": is_owner,
+                "is_admin": is_admin
+            }
+        }
+    }
+
+@router.get("/{gpu_id}", response_model=GPUResponse)
 async def get_gpu(
     gpu_id: int,
     db: Session = Depends(get_db)
@@ -127,10 +223,10 @@ async def get_gpu(
         "data": db_gpu
     }
 
-@router.put("/{gpu_id}", response_model=schemas.GPUResponse)
+@router.put("/{gpu_id}", response_model=GPUResponse)
 async def update_gpu(
     gpu_id: int,
-    gpu_in: schemas.GPUUpdate,
+    gpu_in: GPUUpdate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user)
 ):
@@ -165,7 +261,7 @@ async def update_gpu(
         "data": db_gpu
     }
 
-@router.delete("/{gpu_id}", response_model=schemas.GPUResponse)
+@router.delete("/{gpu_id}", response_model=GPUResponse)
 async def delete_gpu(
     gpu_id: int,
     db: Session = Depends(get_db),
@@ -189,7 +285,7 @@ async def delete_gpu(
         )
     
     # Check if GPU is in use
-    if db_gpu.status == schemas.GPUStatus.IN_USE:
+    if db_gpu.status == GPUStatus.IN_USE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot delete a GPU that is currently in use"

@@ -1,8 +1,47 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  const API_URL = import.meta.env.VITE_API_URL;
   import { goto } from '$app/navigation';
+  import { toast } from 'svelte-sonner';
+  
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  
+  // Get GPU ID from URL params
+  export let data: { params: { id: string } };
+  const gpuId = data.params.id;
+
+  // Interfaces
+  interface GPUSpecs {
+    cuda_cores?: number;
+    tensor_cores?: number;
+    memory_type?: string;
+    memory_bus?: number;
+    bandwidth?: number;
+    base_clock?: number;
+    boost_clock?: number;
+    // Add any additional spec properties here
+  }
+  
+  interface GPUWorkflow {
+    id: number;
+    workflow_type: string;
+    status: string;
+    is_active: boolean;
+    config: Record<string, any>;
+    created_at: string;
+    updated_at: string | null;
+  }
+  
+  interface GPUModel {
+    id: number;
+    model_type: string;
+    model_name: string;
+    model_path: string | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string | null;
+  }
+
 
   interface GPU {
     id: number;
@@ -17,28 +56,69 @@
     ram_gb?: number;
     storage_gb?: number;
     network_speed_mbps?: number;
-    specs: {
-      cuda_cores?: number;
-      tensor_cores?: number;
-      memory_type?: string;
-      memory_bus?: number;
-      bandwidth?: number;
-      base_clock?: number;
-      boost_clock?: number;
+    specs: GPUSpecs & {
+      supported_workflows?: string[];
+      installed_models?: Array<{
+        id: number;
+        name: string;
+        type: string;
+      }>;
     };
-    supported_workflows: Array<{ id: number; workflow_type: string; is_active: boolean }>;
-    installed_models: Array<{ id: number; model_name: string; is_active: boolean }>;
+    created_at: string;
+    updated_at: string | null;
+    // These are for backward compatibility
+    supported_workflows?: string[];
+    installed_models?: Array<{
+      id: number;
+      name: string;
+      type: string;
+    }>;
+  }
+
+  interface Workflow {
+    id: number;
+    workflow_type: string;
+    status: string;
+    config: Record<string, any>;
     created_at: string;
     updated_at: string | null;
   }
 
+  interface Model {
+    id: number;
+    model_type: string;
+    model_name: string;
+    model_path: string | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string | null;
+  }
+
+  interface GPUDetails {
+    gpu: GPU;
+    workflows: Workflow[];
+    models: Model[];
+  }
+
+  // Component state
   let gpu: GPU | null = null;
+  let workflows: GPUWorkflow[] = [];
+  let models: GPUModel[] = [];
   let isLoading = true;
   let error = '';
-  let gpuId: string;
-
-  // Get GPU ID from URL
-  $: gpuId = $page.params.id;
+  let activeTab = 'overview';
+  
+  // Fetch GPU data when component mounts or gpuId changes
+  onMount(async () => {
+    if (gpuId) {
+      await fetchGPU();
+    }
+  });
+  
+  // Reactive statement to refetch when gpuId changes
+  $: if (gpuId) {
+    fetchGPU();
+  }
 
   // Format date
   function formatDate(dateString: string | null | undefined): string {
@@ -46,50 +126,155 @@
     return new Date(dateString).toLocaleString();
   }
   
+  // Format workflow type for display
+  function formatWorkflowType(type?: string): string {
+    if (!type) return 'N/A';
+    return type
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+  
+  // Format bytes to human readable format
+  function formatBytes(bytes: number, decimals = 2): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  }
+
+  // Format model type for display
+  function formatModelType(type?: string): string {
+    if (!type) return 'N/A';
+    return type
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+
+  // Format configuration object to string
+  function formatConfig(config: Record<string, any> | null): string {
+    if (!config) return 'No configuration';
+    return JSON.stringify(config, null, 2);
+  }
+
+  // Fetch GPU details
+  async function fetchGPUDetails() {
+    try {
+      isLoading = true;
+      const response = await fetch(`${API_URL}/gpus/${gpuId}/details`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to fetch GPU details');
+      }
+
+      const data = await response.json();
+      gpuDetails = data.data;
+    } catch (err) {
+      console.error('Error fetching GPU details:', err);
+      error = err.message || 'An error occurred while fetching GPU details';
+      toast.error(error);
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  // Initialize component
+  onMount(() => {
+    fetchGPUDetails();
+  });
+
   // Check if GPU has system info
   function hasSystemInfo(gpu: GPU | null): boolean {
     if (!gpu) return false;
-    return !!(gpu.os || gpu.cpu_model || gpu.cpu_cores || gpu.ram_gb || gpu.storage_gb || gpu.network_speed_mbps);
+    return !!(gpu.os || gpu.cpu_model || gpu.ram_gb || gpu.storage_gb || gpu.network_speed_mbps);
   }
 
-  // Format workflows for display
-  function formatWorkflowType(workflow: string): string {
-    return workflow
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+  // Get status color
+  function getStatusColor(status: string): string {
+    switch (status.toLowerCase()) {
+      case 'available':
+        return 'bg-green-100 text-green-800';
+      case 'in_use':
+      case 'in use':
+        return 'bg-blue-100 text-blue-800';
+      case 'maintenance':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'offline':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
   }
 
   // Fetch GPU details
   async function fetchGPU() {
     try {
       isLoading = true;
-      const [gpuRes, workflowsRes, modelsRes] = await Promise.all([
-        fetch(`${API_URL}/api/gpus/${gpuId}`, {
-          credentials: 'include',
-        }),
-        fetch(`${API_URL}/api/gpus/${gpuId}/workflows`, {
-          credentials: 'include',
-        }),
-        fetch(`${API_URL}/api/gpus/${gpuId}/models`, {
-          credentials: 'include',
-        }),
-      ]);
+      error = '';
+      
+      const gpuRes = await fetch(`${API_URL}/gpus/${gpuId}`, {
+        credentials: 'include',
+      });
 
-      if (!gpuRes.ok) throw new Error('Failed to fetch GPU details');
+      if (!gpuRes.ok) {
+        throw new Error('Failed to fetch GPU details');
+      }
 
       const gpuData = await gpuRes.json();
-      const workflowsData = workflowsRes.ok ? await workflowsRes.json() : { data: [] };
-      const modelsData = modelsRes.ok ? await modelsRes.json() : { data: [] };
-
-      gpu = {
-        ...gpuData.data,
-        supported_workflows: workflowsData.data,
-        installed_models: modelsData.data,
-      };
-    } catch (err) {
-      error = 'Failed to load GPU details. Please try again later.';
-      console.error('Error fetching GPU:', err);
+      
+      // Update the component state with the GPU data
+      const gpuResponse = gpuData.data || gpuData; // Handle both response formats
+      
+      // Ensure specs is always an object
+      if (!gpuResponse.specs) {
+        gpuResponse.specs = {};
+      }
+      
+      // Initialize arrays if they don't exist
+      gpuResponse.supported_workflows = gpuResponse.supported_workflows || [];
+      gpuResponse.installed_models = gpuResponse.installed_models || [];
+      gpuResponse.specs.supported_workflows = gpuResponse.specs.supported_workflows || [];
+      gpuResponse.specs.installed_models = gpuResponse.specs.installed_models || [];
+      
+      // Set the GPU data
+      gpu = gpuResponse;
+      
+      // Fetch workflows and models in parallel
+      const [workflowsRes, modelsRes] = await Promise.all([
+        fetch(`${API_URL}/gpus/${gpuId}/workflows`, {
+          credentials: 'include',
+        }),
+        fetch(`${API_URL}/gpus/${gpuId}/models`, {
+          credentials: 'include',
+        })
+      ]);
+      
+      // Process workflows response
+      if (workflowsRes.ok) {
+        const workflowsData = await workflowsRes.json();
+        workflows = Array.isArray(workflowsData.data) ? workflowsData.data : [];
+      }
+      
+      // Process models response
+      if (modelsRes.ok) {
+        const modelsData = await modelsRes.json();
+        models = Array.isArray(modelsData.data) ? modelsData.data : [];
+      }
+      }
+      
+    } catch (err: unknown) {
+      console.error('Error fetching GPU details:', err);
+      error = err instanceof Error ? err.message : 'Failed to load GPU details';
+      toast.error(error);
     } finally {
       isLoading = false;
     }
@@ -137,7 +322,7 @@
 
     {#if isLoading}
       <div class="flex justify-center items-center h-64">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
       </div>
     {:else if gpu}
       <div class="bg-white shadow overflow-hidden sm:rounded-lg">

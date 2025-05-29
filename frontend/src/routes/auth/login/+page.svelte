@@ -20,7 +20,7 @@
       description: 'Easily integrate with your existing workflows and scale your computations.'
     },
     {
-      image: '/login_img3.png',
+      image: '/login_img2.png',
       title: 'Cost-Effective',
       description: 'Pay only for what you use with our flexible pricing model.'
     }

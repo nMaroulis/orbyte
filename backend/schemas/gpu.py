@@ -104,3 +104,28 @@ class GPUResponse(ResponseModel):
 
 class GPUsResponse(ResponseModel):
     data: List[GPU]
+
+class GPUWorkflowResponse(BaseModel):
+    id: int
+    workflow_type: str
+    status: str
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    config: Dict[str, Any] = {}
+
+class GPUModelResponse(BaseModel):
+    id: int
+    model_type: str
+    model_name: str
+    model_path: Optional[str] = None
+    is_active: bool
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+class GPUDetailResponse(ResponseModel):
+    success: bool = True
+    message: str = "GPU details retrieved successfully"
+    data: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Detailed information about a GPU including workflows and models"
+    )

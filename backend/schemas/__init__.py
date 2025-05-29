@@ -3,7 +3,7 @@ from .base import Token, TokenData, Message, ResponseModel, SortOrder
 
 # Import all schema modules
 from .user import User, UserCreate, UserInDB, UserUpdate, UserResponse, UsersResponse
-from .gpu import GPU, GPUCreate, GPUUpdate, GPUInDB, GPUResponse, GPUsResponse, GPUStatus
+from .gpu import GPU, GPUCreate, GPUUpdate, GPUInDB, GPUResponse, GPUsResponse, GPUStatus, GPUDetailResponse
 from .task import Task, TaskCreate, TaskUpdate, TaskInDB, TaskResponse, TasksResponse, TaskStatus, TaskType
 from .payment import Payment, PaymentCreate, PaymentUpdate, PaymentInDB, PaymentResponse, PaymentsResponse, PaymentStatus
 from .llm_model import (
@@ -19,7 +19,7 @@ __all__ = [
     'User', 'UserCreate', 'UserInDB', 'UserUpdate', 'UserResponse', 'UsersResponse',
     
     # GPU
-    'GPU', 'GPUCreate', 'GPUUpdate', 'GPUInDB', 'GPUResponse', 'GPUsResponse',
+    'GPU', 'GPUCreate', 'GPUUpdate', 'GPUInDB', 'GPUResponse', 'GPUsResponse', 'GPUDetailResponse',
     'GPUStatus',
     
     # LLM Models
