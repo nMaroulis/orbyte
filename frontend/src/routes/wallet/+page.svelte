@@ -48,6 +48,17 @@
   let showCryptoConnect = false;
   let showFiatDeposit = false;
   let depositAmount = '';
+  let selectedCurrency = 'USD';
+  const availableCurrencies = [
+    { code: 'USD', name: 'US Dollar', symbol: '$' },
+    { code: 'EUR', name: 'Euro', symbol: '€' },
+    { code: 'GBP', name: 'British Pound', symbol: '£' },
+    { code: 'JPY', name: 'Japanese Yen', symbol: '¥' },
+    { code: 'AUD', name: 'Australian Dollar', symbol: 'A$' },
+    { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$' },
+  ];
+  
+  $: selectedCurrencyData = availableCurrencies.find(c => c.code === selectedCurrency) || availableCurrencies[0];
 
   async function fetchWallets() {
     try {
@@ -437,23 +448,43 @@
                 {#if showFiatDeposit}
                   <div class="bg-white p-5 rounded-xl shadow-lg border border-gray-200 mt-3 space-y-4 animate-fade-in">
                     <h4 class="text-sm font-medium text-gray-500 mb-1">Add funds to your account</h4>
-                    <div>
-                      <label for="deposit-amount" class="block text-sm font-medium text-gray-700 mb-1">Amount (USD)</label>
-                      <div class="relative rounded-md shadow-sm">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <span class="text-gray-500 sm:text-sm">$</span>
-                        </div>
-                        <input
-                          type="number"
-                          id="deposit-amount"
-                          bind:value={depositAmount}
-                          placeholder="0.00"
-                          class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-12 py-3 sm:text-sm border-gray-300 rounded-lg"
-                          min="1"
-                          step="0.01"
-                        />
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                          <span class="text-gray-500 sm:text-sm">USD</span>
+                    <div class="space-y-4">
+                      <div>
+                        <label for="deposit-amount" class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <div class="mt-1 flex rounded-md shadow-sm">
+                          <div class="relative flex-grow">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <span class="text-gray-500 sm:text-sm">{selectedCurrencyData.symbol}</span>
+                            </div>
+                            <input
+                              type="number"
+                              id="deposit-amount"
+                              bind:value={depositAmount}
+                              placeholder="0.00"
+                              class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-12 py-3 sm:text-sm border-gray-300 rounded-r-none rounded-l-lg border-r-0"
+                              min="1"
+                              step="0.01"
+                            />
+                          </div>
+                          <div class="relative -ml-px">
+                            <select
+                              id="deposit-currency"
+                              bind:value={selectedCurrency}
+                              class="h-full py-0 pl-2 pr-8 border-l-0 border-gray-300 bg-transparent text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 rounded-r-lg sm:text-sm"
+                              aria-label="Select currency"
+                            >
+                              {#each availableCurrencies as currency}
+                                <option value={currency.code}>
+                                  {currency.code}
+                                </option>
+                              {/each}
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                              <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                              </svg>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
