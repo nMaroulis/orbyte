@@ -33,6 +33,10 @@ export const API_ENDPOINTS = {
     LIST: '/models',
     DETAIL: (id: string) => `/models/${id}`,
   },
+  WALLETS: {
+    CRYPTO: '/crypto_wallet',
+    FIAT: '/fiat_wallet',
+  },
 };
 
 export const DEFAULT_HEADERS = {
