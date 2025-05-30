@@ -10,6 +10,14 @@ from .llm_model import (
     LLMModelType, LLMModelBase, LLMModelCreate, LLMModelUpdate, 
     LLMModelInDB, LLMModelResponse, LLMModelsResponse
 )
+from .crypto_wallet import (
+    CryptoCurrency, CryptoWalletStatus, CryptoWalletBase, CryptoWalletCreate,
+    CryptoWalletUpdate, CryptoWalletInDBBase, CryptoWalletResponse, CryptoWalletListResponse
+)
+from .fiat_wallet import (
+    FiatCurrency, FiatWalletStatus, FiatWalletBase, FiatWalletCreate,
+    FiatWalletUpdate, FiatWalletInDBBase, FiatWalletResponse, FiatWalletListResponse
+)
 
 __all__ = [
     # Base
@@ -32,5 +40,13 @@ __all__ = [
     
     # Payment
     'Payment', 'PaymentCreate', 'PaymentUpdate', 'PaymentInDB', 'PaymentResponse', 
-    'PaymentsResponse', 'PaymentStatus'
+    'PaymentsResponse', 'PaymentStatus',
+    
+    # Crypto Wallet
+    'CryptoCurrency', 'CryptoWalletStatus', 'CryptoWalletBase', 'CryptoWalletCreate',
+    'CryptoWalletUpdate', 'CryptoWalletInDBBase', 'CryptoWalletResponse', 'CryptoWalletListResponse',
+    
+    # Fiat Wallet
+    'FiatCurrency', 'FiatWalletStatus', 'FiatWalletBase', 'FiatWalletCreate',
+    'FiatWalletUpdate', 'FiatWalletInDBBase', 'FiatWalletResponse', 'FiatWalletListResponse'
 ]

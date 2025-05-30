@@ -10,7 +10,7 @@ from backend import models, schemas, services
 from backend.core import security
 from backend.core.config import settings
 from backend.database import SessionLocal, engine
-from backend.routers import auth, gpus, tasks, payments, workflows
+from backend.routers import auth, gpus, tasks, payments, workflows, crypto_wallet, fiat_wallet
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -90,6 +90,9 @@ app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
 app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
 # Include workflows router under the gpus prefix
 app.include_router(workflows.router, prefix="/api/gpus/{gpu_id}", tags=["workflows"])
+# Include wallet routers
+app.include_router(crypto_wallet.router, prefix="/api/crypto_wallet", tags=["crypto_wallet"])
+app.include_router(fiat_wallet.router, prefix="/api/fiat_wallet", tags=["fiat_wallet"])
 
 # Health check endpoint
 @app.get("/api/health")

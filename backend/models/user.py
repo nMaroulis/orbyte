@@ -2,6 +2,8 @@ from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from ..database import Base
+from .crypto_wallet import CryptoWallet
+from .fiat_wallet import FiatWallet
 
 class User(Base):
     __tablename__ = "users"
@@ -20,3 +22,5 @@ class User(Base):
     tasks = relationship("Task", back_populates="requester")
     payments_made = relationship("Payment", foreign_keys="Payment.payer_id", back_populates="payer")
     payments_received = relationship("Payment", foreign_keys="Payment.recipient_id", back_populates="recipient")
+    crypto_wallet = relationship("CryptoWallet", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    fiat_wallet = relationship("FiatWallet", back_populates="user", uselist=False, cascade="all, delete-orphan")

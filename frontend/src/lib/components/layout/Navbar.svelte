@@ -202,11 +202,11 @@
                     Account Settings
                   </a>
                   <a 
-                    href="/billing" 
+                    href="/wallet" 
                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     role="menuitem"
                   >
-                    Billing
+                    Wallet
                   </a>
                   <div class="border-t border-gray-100 my-1"></div>
                   <button
@@ -290,10 +290,10 @@
                 Account Settings
               </a>
               <a 
-                href="/billing" 
+                href="/wallet" 
                 class="block px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
               >
-                Billing
+                Wallet
               </a>
               <button
                 type="button"
