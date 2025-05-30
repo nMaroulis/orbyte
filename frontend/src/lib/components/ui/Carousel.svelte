@@ -6,7 +6,8 @@
   
   let currentSlide = 0;
   let timer: number;
-  
+  $: slideTransform = `translateX(-${currentSlide * 100}%)`;
+
   function nextSlide() {
     currentSlide = (currentSlide + 1) % slides.length;
   }
@@ -43,7 +44,7 @@
   <!-- Slides -->
   <div 
     class="flex h-full w-full transition-transform duration-500 ease-in-out"
-    style="transform: translateX(-${currentSlide * 100}%);"
+    style="transform: {slideTransform};"
   >
     {#each slides as slide, i}
       <div class="flex-shrink-0 w-full h-full relative">

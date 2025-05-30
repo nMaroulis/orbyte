@@ -15,14 +15,9 @@
       description: 'Access high-performance GPUs for your machine learning and AI workloads.'
     },
     {
-      image: '/login_img2.png',
-      title: 'Seamless Integration',
-      description: 'Easily integrate with your existing workflows and scale your computations.'
-    },
-    {
-      image: '/login_img2.png',
+      image: '/login_img3.png',
       title: 'Cost-Effective',
-      description: 'Pay only for what you use with our flexible pricing model.'
+      description: 'Pay only for what you use with our flexible pricing model in both crypto and fiat currencies.'
     }
   ];
   
