@@ -265,59 +265,98 @@
               </Card>
             {/each}
           {:else}
-            <div class="bg-white shadow rounded-lg p-8 text-center col-span-3">
-              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <h3 class="mt-2 text-sm font-medium text-gray-900">No crypto wallets</h3>
-              <p class="mt-1 text-sm text-gray-500">Get started by adding a new crypto wallet.</p>
+            <div class="bg-white/80 backdrop-blur-sm shadow-xl rounded-2xl p-8 text-center col-span-3 border border-white/20">
+              <div class="mx-auto h-16 w-16 rounded-full bg-indigo-50 flex items-center justify-center mb-3">
+                <svg class="h-8 w-8 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-800">No Crypto Wallets</h3>
+              <p class="mt-1.5 text-sm text-gray-500 max-w-md mx-auto">Connect your favorite wallet to start managing your crypto assets</p>
               <div class="mt-6 space-y-3">
-                <Button variant="primary" on:click={toggleCryptoConnect} class="w-full justify-center py-3 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-sm transition-colors duration-200">
-                  <svg class="-ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-                  </svg>
-                  Connect Wallet
-                </Button>
+                <button 
+                  on:click={toggleCryptoConnect}
+                  class="w-full group relative overflow-hidden py-3.5 px-6 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+                >
+                  <div class="absolute inset-0 bg-gradient-to-r from-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div class="relative z-10 flex items-center justify-center">
+                    <svg class="h-5 w-5 mr-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                      <line x1="1" y1="10" x2="23" y2="10"></line>
+                      <path d="M7 15h.01M12 15h.01"></path>
+                    </svg>
+                    <span class="font-medium tracking-wide">Connect Wallet</span>
+                  </div>
+                </button>
                 
                 {#if showCryptoConnect}
-                  <div class="bg-white p-4 rounded-xl shadow-lg border border-gray-200 mt-3 space-y-3 animate-fade-in">
-                    <h4 class="text-sm font-medium text-gray-500 mb-2">Choose a wallet</h4>
-                    <button 
-                      on:click={() => connectWallet('MetaMask')}
-                      class="w-full flex items-center p-3.5 rounded-xl hover:bg-gray-50 border border-gray-200 transition-all duration-200 hover:border-indigo-300 hover:shadow-sm"
-                    >
-                      <div class="bg-orange-50 p-1.5 rounded-lg mr-3">
-                        <img src="https://cryptologos.cc/logos/metamask-logo.png" alt="MetaMask" class="h-6 w-6" />
-                      </div>
-                      <span class="font-medium text-gray-900">MetaMask</span>
-                      <svg class="ml-auto h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
-                    <button 
-                      on:click={() => connectWallet('WalletConnect')}
-                      class="w-full flex items-center p-3.5 rounded-xl hover:bg-gray-50 border border-gray-200 transition-all duration-200 hover:border-indigo-300 hover:shadow-sm"
-                    >
-                      <div class="bg-blue-50 p-1.5 rounded-lg mr-3">
-                        <img src="https://cryptologos.cc/logos/walletconnect-logo.png" alt="WalletConnect" class="h-6 w-6" />
-                      </div>
-                      <span class="font-medium text-gray-900">WalletConnect</span>
-                      <svg class="ml-auto h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
-                    <button 
-                      on:click={() => connectWallet('Coinbase Wallet')}
-                      class="w-full flex items-center p-3.5 rounded-xl hover:bg-gray-50 border border-gray-200 transition-all duration-200 hover:border-indigo-300 hover:shadow-sm"
-                    >
-                      <div class="bg-blue-50 p-1.5 rounded-lg mr-3">
-                        <img src="https://cryptologos.cc/logos/coinbase-coin-cb-logo.png" alt="Coinbase Wallet" class="h-6 w-6" />
-                      </div>
-                      <span class="font-medium text-gray-900">Coinbase Wallet</span>
-                      <svg class="ml-auto h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
+                  <div class="backdrop-blur-lg bg-white/80 p-6 rounded-2xl shadow-2xl border border-white/20 mt-4 space-y-4 animate-fade-in overflow-hidden relative">
+                    <div class="absolute -top-10 -right-10 w-20 h-20 bg-indigo-400/10 rounded-full"></div>
+                    <div class="absolute -bottom-8 -left-8 w-16 h-16 bg-purple-400/10 rounded-full"></div>
+                    
+                    <div class="relative z-10 text-center mb-5">
+                      <h4 class="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Connect Your Wallet</h4>
+                      <p class="text-sm text-gray-500 mt-1.5">Select your preferred wallet provider</p>
+                    </div>
+                    
+                    <div class="relative z-10 grid grid-cols-1 gap-3.5">
+                      <button 
+                        on:click={() => connectWallet('MetaMask')}
+                        class="group relative overflow-hidden w-full flex items-center p-3.5 pr-5 rounded-xl bg-white/90 hover:bg-white border border-gray-100 hover:border-indigo-100 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-100/50"
+                      >
+                        <div class="absolute inset-0 bg-gradient-to-r from-white/0 to-white/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="relative z-10 flex items-center w-full">
+                          <div class="bg-orange-50 p-2.5 rounded-xl mr-4 transition-transform duration-300 group-hover:scale-110">
+                            <img src="https://images.ctfassets.net/clixtyxoaeas/1ezuBGezqfIeifWdVtwU4c/d970d4cdf13b163efddddd5709164d2e/MetaMask-icon-Fox.svg" alt="MetaMask" class="h-6 w-6" />
+                          </div>
+                          <div class="text-left flex-1">
+                            <span class="block font-semibold text-gray-800 group-hover:bg-gradient-to-r group-hover:from-indigo-600 group-hover:to-purple-600 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300">MetaMask</span>
+                            <span class="text-xs text-gray-500 mt-0.5 flex items-center">
+                              <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5"></span>
+                              Browser extension
+                            </span>
+                        </div>
+                        <svg class="ml-auto h-5 w-5 text-gray-300 group-hover:text-indigo-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                      
+                      <button 
+                        on:click={() => connectWallet('WalletConnect')}
+                        class="group w-full flex items-center p-4 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 transition-all duration-200 hover:border-blue-200 hover:shadow-md"
+                      >
+                        <div class="bg-blue-50 p-2 rounded-xl mr-4 group-hover:scale-105 transition-transform">
+                          <img src="https://images.seeklogo.com/logo-png/43/1/walletconnect-logo-png_seeklogo-430923.png" alt="WalletConnect" class="h-7 w-7" />
+                        </div>
+                        <div class="text-left">
+                          <span class="block font-medium text-gray-900 group-hover:text-blue-600">WalletConnect</span>
+                          <span class="text-xs text-gray-500">Scan with WalletConnect</span>
+                        </div>
+                        <svg class="ml-auto h-5 w-5 text-gray-300 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                      
+                      <button 
+                        on:click={() => connectWallet('Coinbase Wallet')}
+                        class="group w-full flex items-center p-4 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 transition-all duration-200 hover:border-blue-200 hover:shadow-md"
+                      >
+                        <div class="bg-blue-50 p-2 rounded-xl mr-4 group-hover:scale-105 transition-transform">
+                          <img src="https://pbs.twimg.com/profile_images/1499783051974303748/sm3dkwbI_400x400.png" alt="Coinbase Wallet" class="h-7 w-7" />
+                        </div>
+                        <div class="text-left">
+                          <span class="block font-medium text-gray-900 group-hover:text-blue-600">Coinbase Wallet</span>
+                          <span class="text-xs text-gray-500">Connect with Coinbase</span>
+                        </div>
+                        <svg class="ml-auto h-5 w-5 text-gray-300 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    <div class="pt-2 text-center">
+                      <p class="text-xs text-gray-400">By connecting, I accept the <a href="/terms" class="text-indigo-500 hover:underline">Terms of Service</a></p>
+                    </div>
                   </div>
                 {/if}
               </div>
@@ -359,26 +398,41 @@
               </Card>
             {/each}
           {:else}
-            <div class="bg-white shadow rounded-lg p-8 text-center col-span-3">
-              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
-              </svg>
-              <h3 class="mt-2 text-sm font-medium text-gray-900">No bank accounts</h3>
-              <p class="mt-1 text-sm text-gray-500">Get started by adding a new bank account.</p>
+              <div class="bg-white/80 backdrop-blur-sm shadow-xl rounded-2xl p-8 text-center col-span-3 border border-white/20">
+                <div class="mx-auto h-16 w-16 rounded-full bg-green-50 flex items-center justify-center mb-3">
+                  <svg class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                  </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800">No Bank Accounts</h3>
+                <p class="mt-1.5 text-sm text-gray-500 max-w-md mx-auto">Add your bank account to start managing your fiat assets</p>
               <div class="mt-6 space-y-3">
-                <Button variant="primary" on:click={toggleFiatDeposit} class="w-full justify-center py-3 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-sm transition-colors duration-200">
-                  <svg class="-ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-                  </svg>
-                  Add Money
-                </Button>
+                <button 
+                  on:click={toggleFiatDeposit}
+                  class="w-full group relative overflow-hidden py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-medium transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+                >
+                  <div class="absolute inset-0 bg-gradient-to-r from-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div class="relative z-10 flex items-center justify-center">
+                    <svg class="h-5 w-5 mr-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span class="font-medium tracking-wide">Add Money</span>
+                  </div>
+                </button>
                 
-                <Button variant="outline" on:click={addDemoFunds} class="w-full justify-center py-2.5 px-4 rounded-lg border-2 border-dashed border-gray-300 hover:border-indigo-300 bg-white text-gray-700 font-medium hover:bg-gray-50 transition-colors duration-200">
-                  <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Add Demo Funds ($1000)
-                </Button>
+                <button 
+                  on:click={addDemoFunds}
+                  class="w-full group relative overflow-hidden py-2.5 px-6 rounded-xl border-2 border-dashed border-indigo-200 hover:border-indigo-300 bg-white/80 hover:bg-white text-indigo-700 font-medium transition-all duration-300"
+                >
+                  <div class="absolute inset-0 bg-gradient-to-r from-indigo-50/0 to-indigo-50/0 group-hover:from-indigo-50/50 group-hover:to-indigo-100/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div class="relative z-10 flex items-center justify-center">
+                    <svg class="h-5 w-5 mr-2.5 text-indigo-500 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="font-medium tracking-wide bg-gradient-to-r from-indigo-600 to-purple-600 group-hover:from-indigo-700 group-hover:to-purple-700 bg-clip-text text-transparent">Add Demo Funds ($1000)</span>
+                  </div>
+                </button>
                 
                 {#if showFiatDeposit}
                   <div class="bg-white p-5 rounded-xl shadow-lg border border-gray-200 mt-3 space-y-4 animate-fade-in">
